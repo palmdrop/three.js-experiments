@@ -1,23 +1,40 @@
-import logo from './logo.svg';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+
 import './App.css';
+import T3 from './three/ThreeApp'
 
 function App() {
+  const threeMount = useRef(null);
+
+  useEffect(() => {
+    T3.initialize();
+    threeMount.current.appendChild( T3.getDomElement() );
+    T3.start();
+
+    return () => {
+      T3.stop();
+    };
+  });
+
+  useLayoutEffect(() => {
+    const handleResize = () => {
+      T3.setSize( window.innerWidth, window.innerHeight );
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div 
+      className="App"
+    >
+      <div 
+        key={"three"}
+        ref={threeMount}>
+      </div>
     </div>
   );
 }
