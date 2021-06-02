@@ -28,6 +28,8 @@ class ThreeApp {
         this.camera.position.z = 10;
         this.camera.lookAt(new THREE.Vector3());
 
+        //new THREE.FlyControls(this.camera, canvas);
+
         // SCENE
         this.scene    = new THREE.Scene();
 
@@ -58,33 +60,6 @@ class ThreeApp {
     }
 
     generateGeometry() {
-        const klein = (v, u, target) => {
-            u *= Math.PI;
-            v *= 2 * Math.PI;
-            u = u * 2;
-          
-            let x;
-            let z;
-          
-            if (u < Math.PI) {
-                x = 3 * Math.cos(u) * (1 + Math.sin(u)) + (2 * (1 - Math.cos(u) / 2)) * Math.cos(u) * Math.cos(v);
-                z = -8 * Math.sin(u) - 2 * (1 - Math.cos(u) / 2) * Math.sin(u) * Math.cos(v);
-            } else {
-                x = 3 * Math.cos(u) * (1 + Math.sin(u)) + (2 * (1 - Math.cos(u) / 2)) * Math.cos(v + Math.PI);
-                z = -6 * Math.sin(u);
-            }
-          
-            const y = -2 * (1 - Math.cos(u) / 2) * Math.sin(v);
-          
-            target.set(x, y, z).multiplyScalar(0.75);
-        }
-        /*return new THREE.ParametricGeometry(
-            klein, 107, 25
-        );*/
-        /*return new THREE.TorusKnotGeometry(
-            4.1, 11, 75, 15, 17
-        );*/
-        //return new THREE.ConeGeometry(6, 8, 16);
         return new THREE.BoxGeometry(3, 3, 3, 4, 4, 4);
     }
 
@@ -151,7 +126,6 @@ class ThreeApp {
         switch(direction)
         {
             case 'up': 
-                //this.camera.addForce(this.camera.up.clone().multiplyScalar(1.2));
                 this.camera.addForce(this.camera.getWorldDirection());
             break;
             case 'left': 
@@ -159,14 +133,40 @@ class ThreeApp {
             break;
             case 'down': 
                 this.camera.addForce(this.camera.getWorldDirection().clone().multiplyScalar(-1));
-                //this.camera.addForce(this.camera.up.clone().multiplyScalar(-1));
             break;
             case 'right': 
                 this.camera.addForce(right.multiplyScalar(1));
 
             break;
         }
+    }
 
+    look(direction) {
+        const right = this.camera.getWorldDirection(new THREE.Vector3()).clone().cross(this.camera.up);
+        right.normalize();
+        const speed = 0.005;
+        const rotation = new THREE.Vector3();
+
+        switch(direction) 
+        {
+            case 'up': 
+                rotation.x = speed;
+            break;
+            case 'left': 
+                rotation.y = speed;
+            break;
+            case 'down': 
+                rotation.x = -speed;
+            break;
+            case 'right': 
+                rotation.y = -speed;
+            break;
+        }
+
+        //forward.applyQuaternion( q );
+        //this.camera.setForward(forward)
+        //console.log(forward);
+        this.camera.addRotation(rotation);
     }
 
     // Returns the dom element of the renderer

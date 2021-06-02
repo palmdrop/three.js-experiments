@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export const useKeyboardInput = () => {
+export const useKeyboardInput = (domElement) => {
   // The states of each key
   // If a key is pressed, the corresponding property will be set to true
   // If a key is not pressed, its corresponding property will either not exist 
@@ -15,7 +15,7 @@ export const useKeyboardInput = () => {
 
   // Updates the key states
   const onKeyAction = (e) => {
-    const key = e.key; // The current key name/value
+    const key = e.code; // The current key name/value
     const state = e.type === "keydown"; // True if pressed, false if not
 
     // If the key is pressed but wasn't previously, execute the corresponding
@@ -23,17 +23,28 @@ export const useKeyboardInput = () => {
     if(state && !isHeld(key)) {
       if(pressedActions.current[key]) {
         e.preventDefault();
-        pressedActions.current[key](e); // Execute action
+        pressedActions.current[key](e, keyStates); // Execute action
       }
     }
 
     // Update the key states
-    keyStates.current[key] = state;
+    keyStates.current[key] = {
+      isPressed: state,
+      event: e
+    };
+  };
+
+  // Disable all key presses if focus is lost
+  const reset = (e) => {
+    keyStates.current = {};
   };
 
   // Returns true if a key is held
   const isHeld = (key) => {
-    return keyStates.current[key] | false;
+    if(!keyStates.current[key]) {
+      return false;
+    }
+    return keyStates.current[key].isPressed | false;
   }
 
   // Helper function for linking an action to a specific key press/hold
@@ -61,7 +72,8 @@ export const useKeyboardInput = () => {
   // Executes all actions associated with currently held keys
   const executeHeldActions = () => {
     Object.entries(heldActions.current).forEach(([key, action]) => {
-      if(isHeld(key)) action();
+      const keyData = keyStates.current[key];
+      if(isHeld(key)) action(keyData ? keyData.event : null);
     });
   };
 
@@ -69,10 +81,12 @@ export const useKeyboardInput = () => {
     // Add handler to both keydown and keyup events, since it can handle both
     window.addEventListener("keydown", onKeyAction);
     window.addEventListener("keyup", onKeyAction);
+    window.addEventListener("blur", reset);
 
     return () => {
       window.removeEventListener("keydown", onKeyAction);
       window.removeEventListener("keyup", onKeyAction);
+      window.removeEventListener("blur", reset);
     };
   });
 

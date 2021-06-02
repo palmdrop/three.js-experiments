@@ -8,34 +8,81 @@ import T3 from './three/ThreeApp'
 function App() {
   const canvasRef = useRef(null);
 
-  const [, setOnPress, setOnHeld, executeHeldActions] = useKeyboardInput();
+  const [, setOnPress, setOnHeld, executeHeldActions] = useKeyboardInput(canvasRef.current);
 
   const shortcuts = [
+    /*
     {
-      keys: 'w',
+      keys: 'KeyW',
       action: (e) => {
-        T3.move('up');
+        T3.look('up');
       },
       onHeld: true
     },
     {
-      keys: 'a',
+      keys: 'A',
       action: (e) => {
-        T3.move('left');
+        T3.look('left');
       },
       onHeld: true
     },
     {
-      keys: 's',
+      keys: 'S',
       action: (e) => {
-        T3.move('down');
+        T3.look('down');
       },
       onHeld: true
     },
     {
-      keys: 'd',
+      keys: 'D',
       action: (e) => {
-        T3.move('right');
+        T3.look('right');
+      },
+      onHeld: true
+    },
+    */
+    {
+      keys: 'KeyW',
+      action: (e) => {
+        if(e.getModifierState("Shift")) {
+          T3.look('up');
+        } else {
+          T3.move('up');
+        }
+      },
+      onHeld: true
+    },
+    
+    {
+      keys: 'KeyA',
+      action: (e) => {
+        if(e.getModifierState("Shift")) {
+          T3.look('left');
+        } else {
+          T3.move('left');
+        }
+      },
+      onHeld: true
+    },
+    {
+      keys: 'KeyS',
+      action: (e) => {
+        if(e.getModifierState("Shift")) {
+          T3.look('down');
+        } else {
+          T3.move('down');
+        }
+      },
+      onHeld: true
+    },
+    {
+      keys: 'KeyD',
+      action: (e) => {
+        if(e.getModifierState("Shift")) {
+          T3.look('right');
+        } else {
+          T3.move('right');
+        }
       },
       onHeld: true
     }
@@ -56,8 +103,6 @@ function App() {
         setOnHeld(keyInfo.keys, keyInfo.action);
       }
     });
-
-
 
     // Stop Three App
     return () => {
