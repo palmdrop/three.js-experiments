@@ -1,12 +1,16 @@
 import * as THREE from 'three'
 
 import { MovementModule } from '../physics/MovementModule'
+import { RotationModule } from '../physics/RotationModule'
 
+
+// Camera with physics for movement and rotation
 export class PhysicsCamera extends THREE.PerspectiveCamera {
     constructor(...args) {
         super(...args);
 
-        this.movementModule = new MovementModule(
+        // Module for handling movement physics
+        this._movementModule = new MovementModule(
             this.position,
             new THREE.Vector3(), // Velocity
             new THREE.Vector3(), // Acceleration
@@ -14,10 +18,16 @@ export class PhysicsCamera extends THREE.PerspectiveCamera {
             30   // Speed
         );
 
-        this.rotationVelocity = new THREE.Vector3();
-        this.rotationFriction = 6.0;
-        this.rotationSpeed = 20;
-        this.setForward(new THREE.Vector3(0, 0, -1));
+        // Module for handling rotation physics
+        this._rotationModule = new RotationModule(
+            false, // Preserve momentum
+            6,     // Friction
+            0.2,  // Speed
+        );
+
+        // 
+        //this.setForward(this._rotationModule.initialForward);
+        this._lookForward();
     }
 
     //////////////
@@ -25,83 +35,38 @@ export class PhysicsCamera extends THREE.PerspectiveCamera {
     //////////////
     
     addForce(force) {
-        this.movementModule.addForce(force);
+        this._movementModule.addForce(force);
     }
 
     update(delta) {
-        // Update position, velocity and acceleration
-        this.movementModule.update(delta);
+        this._movementModule.update(delta);
 
         // If look at position is set, look in this direction 
         if(this.lookAtPosition) {
            this.lookAt(this.lookAtPosition);
-        } 
-
-        // Rotate 
-        if(this.rotationVelocity.lengthSq() !== 0) {
-           this.rotate(this.rotationVelocity.clone().multiplyScalar(delta * this.rotationSpeed));
-           this.rotationVelocity.multiplyScalar(1.0 - this.rotationFriction * delta);
+        } else {
+            this._rotationModule.update(delta);
+            this._lookForward();
         }
     }
 
     ////////////
     // FACING //
     ////////////
+    _lookForward() {
+        this.lookAt(this.position.clone().add(this._rotationModule.forward));
+    }
 
     lookAtLock(position) {
         this.lookAtPosition = position;
         super.lookAt(position);
     }
 
-    setForward(forward) {
-        this.forward = forward;
-        this.lookAtPosition = null;
-        super.lookAt(this.position.clone().add(forward));
-    }
-
     addRotation(rotation, preserveRotationMomentum = false) {
-        this.preserveRotationMomentum = preserveRotationMomentum;
-        this.rotationVelocity.add(rotation);
+        this._rotationModule.addRotation(rotation, preserveRotationMomentum);
     }
 
-    rotate(rotationVelocity) {
-        // Fetch the three axis of the camera
-        const up = this.up;
-        const forward = this.forward;
-        const right = forward.clone().cross(up);
-        right.normalize();
-
-        // Quaternion for performing rotation
-        const quaternion = new THREE.Quaternion();
-
-        // Current rotation velocity
-
-        // Pitch
-
-        const pitch = rotationVelocity.x;
-        quaternion.setFromAxisAngle(
-            right,
-            pitch
-        );
-        forward.applyQuaternion(quaternion);
-
-        // Yaw
-        const yaw = rotationVelocity.y;
-        quaternion.setFromAxisAngle(
-            up,
-            yaw
-        );
-        forward.applyQuaternion(quaternion);
-
-
-        // Roll
-        const roll = rotationVelocity.z;
-        quaternion.setFromAxisAngle(
-            forward,
-            roll
-        );
-        forward.applyQuaternion(quaternion);
-
-        this.setForward(forward);
+    getForward() {
+        return this._rotationModule.forward;
     }
 }

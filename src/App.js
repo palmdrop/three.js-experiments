@@ -5,42 +5,14 @@ import { useKeyboardInput } from './hooks/KeyboardInputHook'
 import './App.css';
 import T3 from './three/ThreeApp'
 
+import * as THREE from 'three'
+
 function App() {
   const canvasRef = useRef(null);
 
-  const [, setOnPress, setOnHeld, executeHeldActions] = useKeyboardInput(canvasRef.current);
+  const [, setOnPress, setOnHeld, executeHeldActions, initializeKeyActions] = useKeyboardInput(canvasRef.current);
 
   const shortcuts = [
-    /*
-    {
-      keys: 'KeyW',
-      action: (e) => {
-        T3.look('up');
-      },
-      onHeld: true
-    },
-    {
-      keys: 'A',
-      action: (e) => {
-        T3.look('left');
-      },
-      onHeld: true
-    },
-    {
-      keys: 'S',
-      action: (e) => {
-        T3.look('down');
-      },
-      onHeld: true
-    },
-    {
-      keys: 'D',
-      action: (e) => {
-        T3.look('right');
-      },
-      onHeld: true
-    },
-    */
     {
       keys: 'KeyW',
       action: (e) => {
@@ -95,14 +67,35 @@ function App() {
       executeHeldActions();
     });
 
-    // Handle keyboard shortcuts
-    shortcuts.forEach((keyInfo) => {
-      if(!keyInfo.onHeld) {
-        setOnPress(keyInfo.keys, keyInfo.action);
-      } else {
-        setOnHeld(keyInfo.keys, keyInfo.action);
-      }
-    });
+    initializeKeyActions(shortcuts);
+
+    const rig = T3.cameraRig;
+
+    // Mouse controls
+    const mouseDown = (e) => {
+      rig.setAnchor(true, new THREE.Vector3(
+        e.clientY,
+        e.clientX,
+        0.0
+      ));
+    };
+
+    const mouseMove = (e) => {
+      rig.anchorRotate(new THREE.Vector3(
+        e.clientY,
+        e.clientX,
+        0.0
+      ));
+    };
+
+    const mouseUp = (e) => {
+      rig.setAnchor(false); 
+    };
+
+    window.addEventListener("mousedown", mouseDown);
+    window.addEventListener("mousemove", mouseMove);
+    window.addEventListener("mouseup", mouseUp);
+    window.addEventListener("blur", mouseUp);
 
     // Stop Three App
     return () => {

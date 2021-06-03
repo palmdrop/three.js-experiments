@@ -1,10 +1,15 @@
 import * as THREE from 'three';
 
 import { PhysicsCamera } from './camera/PhysicsCamera'
+import { CameraRig } from './camera/CameraRig'
+
+import t1 from '../resources/warp7.png'
 
 class ThreeApp {
     initialize(canvas, useDevicePixelRatio) {
         this.useDevicePixelRatio = useDevicePixelRatio && window.devicePixelRatio;
+
+        this.textureLoader = new THREE.TextureLoader();
 
         // RENDERER
         this.renderer = new THREE.WebGLRenderer(
@@ -28,39 +33,89 @@ class ThreeApp {
         this.camera.position.z = 10;
         this.camera.lookAt(new THREE.Vector3());
 
-        //new THREE.FlyControls(this.camera, canvas);
+        this.cameraRig = new CameraRig(this.camera);
+
+        // FOG
+        const backgroundColor = 0x054443;
+        const fog = new THREE.Fog(
+            backgroundColor, // Color
+            3, // Near
+            40 // Far
+        );
+
+        const texture1 = this.textureLoader.load(t1);
+        texture1.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        //texture1.minFilter = THREE.LinearFilter;
+        //texture1.magFilter = THREE.LinearMipMapLinearFilter;
+
+        // MODELS
+        const knotGeometry = new THREE.TorusKnotGeometry( 1, 0.2, 100, 16 );
+        const knotMaterial = new THREE.MeshStandardMaterial( { 
+            color: 0x3F3438,
+            metalness: 0.8,
+            roughness: 0.7,
+            bumpMap: texture1,
+            bumpScale: 0.1
+        } );
+        this.torusKnot = new THREE.Mesh( knotGeometry, knotMaterial );
 
         // SCENE
         this.scene    = new THREE.Scene();
 
         // Create cube
-        const geometry = this.generateGeometry();
-        //new THREE.BoxGeometry( 1, 1, 1 );
-        const material = new THREE.MeshPhongMaterial( { color: 0x258f70 } );
+        const cubeSize = 9;
+        const detail = 200;
+        const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize, detail, detail, detail);
+
+        const material = 
+        //new THREE.MeshPhongMaterial( { 
+        new THREE.MeshStandardMaterial({
+            color: 0x258f70, 
+            map: texture1,
+            bumpMap: texture1,
+            bumpScale: 1.0,
+            displacementMap: texture1,
+            displacementScale: 0.5,
+            side: THREE.BackSide,
+            metalness: 0.8,
+            roughness: 0.9,
+        });
+        material.dithering = true;
+
         this.cube = new THREE.Mesh( geometry, material );
 
         // Create light
-        const light = new THREE.DirectionalLight(
-            0xFFFFFF, // Color
-            1         // Intensity
+        const light1 = new THREE.PointLight(
+            0xFF6F8F, // Color
+            10,        // Intensity
+            35,       // Distance
+            2         // Decay
         );
-        light.position.set(-3, 2, 4);
+        light1.position.set(4, 4, 3);
+
+        const light2 = new THREE.PointLight(
+            0xFF6F8F, // Color
+            12,        // Intensity
+            30,       // Distance
+            2         // Decay
+        );
+        light2.position.set(-2, -3, -3);
 
         const ambientLight = new THREE.AmbientLight( 0x202020 );
 
         // And add to scene
         this.scene.add( this.cube );
-        this.scene.add( light );
+        this.scene.add( light1 );
+        this.scene.add( light2 );
         this.scene.add( ambientLight );
+        //this.scene.add( this.torusKnot );
+        this.scene.fog = fog;
+        this.scene.background = new THREE.Color(backgroundColor);
 
 
         // Resize scene to correct size
         this.initialized = true;
         this.setSize( canvas.clientWidth, canvas.clientHeight );
-    }
-
-    generateGeometry() {
-        return new THREE.BoxGeometry(3, 3, 3, 4, 4, 4);
     }
 
     start(callback) {
@@ -77,6 +132,8 @@ class ThreeApp {
             // Rotate the cube
             //this.cube.rotation.x += 0.01;
             //this.cube.rotation.y += 0.01;
+            this.torusKnot.rotation.x += 0 * delta;
+            this.torusKnot.rotation.y += 0 * delta;
 
             // Render the scene
             this.renderer.render( this.scene, this.camera );
@@ -120,19 +177,20 @@ class ThreeApp {
     }
 
     move(direction) {
-        const right = this.camera.getWorldDirection().clone().cross(this.camera.up);
+        const forward = this.camera.getForward();
+        const right = this.camera.getWorldDirection(new THREE.Vector3()).clone().cross(this.camera.up);
         right.normalize();
 
         switch(direction)
         {
             case 'up': 
-                this.camera.addForce(this.camera.getWorldDirection());
+                this.camera.addForce(forward);
             break;
             case 'left': 
                 this.camera.addForce(right.multiplyScalar(-1));
             break;
             case 'down': 
-                this.camera.addForce(this.camera.getWorldDirection().clone().multiplyScalar(-1));
+                this.camera.addForce(forward.clone().multiplyScalar(-1));
             break;
             case 'right': 
                 this.camera.addForce(right.multiplyScalar(1));
@@ -144,7 +202,7 @@ class ThreeApp {
     look(direction) {
         const right = this.camera.getWorldDirection(new THREE.Vector3()).clone().cross(this.camera.up);
         right.normalize();
-        const speed = 0.005;
+        const speed = 1.0
         const rotation = new THREE.Vector3();
 
         switch(direction) 
@@ -162,11 +220,7 @@ class ThreeApp {
                 rotation.y = -speed;
             break;
         }
-
-        //forward.applyQuaternion( q );
-        //this.camera.setForward(forward)
-        //console.log(forward);
-        this.camera.addRotation(rotation);
+        this.camera.addRotation(rotation, true);
     }
 
     // Returns the dom element of the renderer

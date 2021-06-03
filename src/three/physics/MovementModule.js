@@ -21,7 +21,7 @@ export class MovementModule {
         this.position.add(this.velocity.clone().multiplyScalar(delta));
 
         // Apply friction
-        this.velocity.multiplyScalar(1.0 - this.friction * delta);
+        this.velocity.multiplyScalar(Math.max(1.0 - this.friction * delta, 0.0));
 
         // Reset acceleration
         this.acceleration.multiplyScalar(0.0);

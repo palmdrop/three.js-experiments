@@ -77,6 +77,17 @@ export const useKeyboardInput = (domElement) => {
     });
   };
 
+  // Initialize with actions for pressed and held keys
+  const initialize = (keyInfos) => {
+    keyInfos.forEach((keyInfo) => {
+      if(!keyInfo.onHeld) {
+        setOnPress(keyInfo.keys, keyInfo.action);
+      } else {
+        setOnHeld(keyInfo.keys, keyInfo.action);
+      }
+    });
+  }
+
   useEffect(() => {
     // Add handler to both keydown and keyup events, since it can handle both
     window.addEventListener("keydown", onKeyAction);
@@ -90,5 +101,5 @@ export const useKeyboardInput = (domElement) => {
     };
   });
 
-  return [isHeld, setOnPress, setOnHeld, executeHeldActions];
+  return [isHeld, setOnPress, setOnHeld, executeHeldActions, initialize];
 };
