@@ -1,0 +1,24 @@
+.progress-bar {
+    margin: 0.0em;
+    background-color: var(--black1);
+    padding: 1rem;
+    width: calc(100% - 2rem);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border-radius: 20px;
+    
+    box-shadow: var(--box-shadow-big);
+}
+
+.progress-bar__indicator {
+    z-index: 100;
+    background: var(--loading);
+    height: 1em;
+    width: 100%;
+
+    border-radius: inherit;
+    box-shadow: var(--box-shadow-small);
+}

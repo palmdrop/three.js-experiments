@@ -3,37 +3,39 @@ import * as THREE from 'three';
 import { PhysicsCamera } from './camera/PhysicsCamera'
 import { CameraRig } from './camera/CameraRig'
 
-import t1 from '../resources/warp7.png'
+import t1 from '../resources/warp3.png'
+
+class ResourceManager {
+    constructor(renderer) {
+        this.renderer = renderer;
+        this.loadManager = new THREE.LoadingManager();
+        this.textureLoader = new THREE.TextureLoader(this.loadManager);
+    }
+
+    load(onProgress, onLoad) {
+        this._loadResources();
+        if(onLoad) this.loadManager.onLoad = onLoad;
+        if(onProgress) this.loadManager.onProgress = onProgress;
+
+        return this;
+    }
+
+    _loadTexture(path) {
+        const texture = this.textureLoader.load(path);
+        texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        return texture;
+    }
+
+    _loadResources() {
+        this.textures = {
+            walls: this._loadTexture(t1),
+            test: this._loadTexture(t1)
+        };
+    }
+};
 
 class ThreeApp {
-    initialize(canvas, useDevicePixelRatio) {
-        this.useDevicePixelRatio = useDevicePixelRatio && window.devicePixelRatio;
-
-        this.textureLoader = new THREE.TextureLoader();
-
-        // RENDERER
-        this.renderer = new THREE.WebGLRenderer(
-            {
-                canvas: canvas,
-                antialias: true
-            }
-        );
-        //this.renderer.setSize( window.innerWidth, window.innerHeight, false );
-        this.renderer.setSize(0, 0, false);
-
-        // CAMERA
-        this.camera   
-            = new PhysicsCamera(
-        //= new THREE.PerspectiveCamera( 
-            75,                                   // fov
-            window.innerWidth/window.innerHeight, // Aspect ratio
-            0.1,                                  // near
-            1000                                  // far
-        );
-        this.camera.position.z = 10;
-        this.camera.lookAt(new THREE.Vector3());
-
-        this.cameraRig = new CameraRig(this.camera);
+    _setupScene() {
 
         // FOG
         const backgroundColor = 0x054443;
@@ -43,18 +45,14 @@ class ThreeApp {
             40 // Far
         );
 
-        const texture1 = this.textureLoader.load(t1);
-        texture1.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-        //texture1.minFilter = THREE.LinearFilter;
-        //texture1.magFilter = THREE.LinearMipMapLinearFilter;
-
         // MODELS
-        const knotGeometry = new THREE.TorusKnotGeometry( 1, 0.2, 100, 16 );
+        const knotGeometry = new THREE.TorusKnotGeometry( 0.04, 0.4, 200, 100 );
         const knotMaterial = new THREE.MeshStandardMaterial( { 
-            color: 0x3F3438,
-            metalness: 0.8,
-            roughness: 0.7,
-            bumpMap: texture1,
+            //color: 0x3F3438,
+            map: this.resources.textures.walls,
+            metalness: 0.3,
+            roughness: 0.8,
+            bumpMap: this.resources.textures.walls,
             bumpScale: 0.1
         } );
         this.torusKnot = new THREE.Mesh( knotGeometry, knotMaterial );
@@ -63,43 +61,50 @@ class ThreeApp {
         this.scene    = new THREE.Scene();
 
         // Create cube
-        const cubeSize = 9;
+        const cubeSize = 18;
         const detail = 200;
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize, detail, detail, detail);
 
         const material = 
-        //new THREE.MeshPhongMaterial( { 
-        new THREE.MeshStandardMaterial({
-            color: 0x258f70, 
-            map: texture1,
-            bumpMap: texture1,
-            bumpScale: 1.0,
-            displacementMap: texture1,
-            displacementScale: 0.5,
-            side: THREE.BackSide,
-            metalness: 0.8,
-            roughness: 0.9,
-        });
+            new THREE.MeshStandardMaterial({
+                map: this.resources.textures.walls,
+                bumpMap: this.resources.textures.walls,
+                bumpScale: 0.2,
+                displacementMap: this.resources.textures.walls,
+                displacementScale: 0.5,
+                side: THREE.BackSide,
+                metalness: 0.4,
+                roughness: 0.6,
+            });
+
         material.dithering = true;
 
         this.cube = new THREE.Mesh( geometry, material );
 
         // Create light
         const light1 = new THREE.PointLight(
-            0xFF6F8F, // Color
-            10,        // Intensity
-            35,       // Distance
+            0xFF897F, // Color
+            12,        // Intensity
+            14,       // Distance
             2         // Decay
         );
         light1.position.set(4, 4, 3);
 
         const light2 = new THREE.PointLight(
-            0xFF6F8F, // Color
-            12,        // Intensity
-            30,       // Distance
+            0x7A886F, // Color
+            15,        // Intensity
+            14,       // Distance
             2         // Decay
         );
         light2.position.set(-2, -3, -3);
+
+        const light3 = new THREE.PointLight(
+            0x8A888F, // Color
+            -10,        // Intensity
+            7,       // Distance
+            2         // Decay
+        );
+        light3.position.set(0, 0, 0);
 
         const ambientLight = new THREE.AmbientLight( 0x202020 );
 
@@ -107,15 +112,48 @@ class ThreeApp {
         this.scene.add( this.cube );
         this.scene.add( light1 );
         this.scene.add( light2 );
+        this.scene.add( light3 );
         this.scene.add( ambientLight );
-        //this.scene.add( this.torusKnot );
+        this.scene.add( this.torusKnot );
         this.scene.fog = fog;
         this.scene.background = new THREE.Color(backgroundColor);
 
 
         // Resize scene to correct size
         this.initialized = true;
-        this.setSize( canvas.clientWidth, canvas.clientHeight );
+        this.setSize( this.canvas.clientWidth, this.canvas.clientHeight );
+    }
+
+
+    initialize(canvas, useDevicePixelRatio, onProgress, onLoad) {
+        //this.canvas = canvas;
+        this.initialized = false;
+
+        // RENDERER
+        this.renderer = new THREE.WebGLRenderer(
+            {
+                canvas: canvas,
+                antialias: true
+            }
+        );
+        this.canvas = this.renderer.domElement;
+
+        // CAMERA
+        this.camera = new PhysicsCamera(
+            35,                                   // fov
+            window.innerWidth/window.innerHeight, // Aspect ratio
+            0.1,                                  // near
+            1000                                  // far
+        );
+        this.camera.position.z = 10;
+        this.cameraRig = new CameraRig(this.camera);
+
+        this.useDevicePixelRatio = useDevicePixelRatio && window.devicePixelRatio;
+        this.resources = new ResourceManager(this.renderer).load(onProgress, () => {
+            this._setupScene()
+            onLoad && onLoad();
+        });
+
     }
 
     start(callback) {
@@ -128,6 +166,8 @@ class ThreeApp {
 
             // Recursively request another frame
             this.frameID = requestAnimationFrame( animate );
+
+            if(!this.initialized) return;
 
             // Rotate the cube
             //this.cube.rotation.x += 0.01;
