@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
-import { MovementModule } from '../physics/MovementModule'
-import { RotationModule } from '../physics/RotationModule'
+import { MovementModule } from '../../systems/physics/MovementModule'
+import { RotationModule } from '../../systems/physics/RotationModule'
 
 
 // Camera with physics for movement and rotation

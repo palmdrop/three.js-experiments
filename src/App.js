@@ -2,8 +2,6 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { useKeyboardInput } from './hooks/KeyboardInputHook'
 
-import ProgressBar from './components/indicators/ProgressBar'
-
 import './App.css';
 import T3 from './three/ThreeApp'
 
@@ -12,22 +10,18 @@ import LoadingPage from './pages/loadingPage';
 
 function App() {
   const canvasRef = useRef(null);
-  const progressRef = useRef(null);
-
   const [loaded, setLoaded] = useState(0.0);
 
   // The progress loading state of the application
   // Specifies how many resources have been loaded
   // as a fraction between 0.0 and 1.0
-  //const [progress, setProgress] = useState(0.0);
   const onProgress = (url, loaded, total) => {
     setLoaded(loaded / total);
   };
 
   const onLoad = () => {
-    setLoaded(1.0);
+    //setLoaded(1.0);
   };
-
 
   const [, , , executeHeldActions, initializeKeyActions] = useKeyboardInput(canvasRef.current);
 
@@ -82,36 +76,8 @@ function App() {
   useEffect(() => {
     if(!T3.initialized) {
       // Initialize Three App
-      T3.initialize(canvasRef.current, false, onProgress, onLoad);
+      T3.initialize(canvasRef.current, onProgress, onLoad);
       initializeKeyActions(shortcuts);
-
-      const rig = T3.cameraRig;
-
-      // Mouse controls
-      const mouseDown = (e) => {
-        rig.setAnchor(true, new THREE.Vector3(
-          e.clientY,
-          e.clientX,
-          0.0
-        ));
-      };
-
-      const mouseMove = (e) => {
-        rig.anchorRotate(new THREE.Vector3(
-          e.clientY,
-          e.clientX,
-          0.0
-        ));
-      };
-
-      const mouseUp = (e) => {
-        rig.setAnchor(false); 
-      };
-
-      window.addEventListener("mousedown", mouseDown);
-      window.addEventListener("mousemove", mouseMove);
-      window.addEventListener("mouseup", mouseUp);
-      window.addEventListener("blur", mouseUp);
     }
 
     T3.start(() => {
@@ -126,8 +92,7 @@ function App() {
 
   useLayoutEffect(() => {
     const handleResize = () => {
-      const canvas = canvasRef.current;
-      T3.setSize( canvas.clientWidth, canvas.clientHeight );
+      T3.resize();
     };
 
     window.addEventListener("resize", handleResize);
@@ -142,8 +107,6 @@ function App() {
     >
       <LoadingPage
         loaded={loaded}
-        ref={progressRef} 
-        onLoadCallbackSetup={(callback) => onLoad(callback)}
       />
       <canvas 
         className="canvas"
