@@ -1,7 +1,14 @@
-import { WebGLRenderer } from 'three';
+import * as THREE from 'three';
 
-const createRenderer = (options) => {
-    const renderer = new WebGLRenderer(options);
+const createRenderer = (canvas) => {
+    const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+    });
+
+    // enable the physically correct lighting model
+    renderer.physicallyCorrectLights = true;
+
     return renderer;
 }
 

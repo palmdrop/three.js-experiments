@@ -1,5 +1,8 @@
 .loading-page {
     background-color: var(--background);
+    background-attachment: fixed;
+    background-position: center;
+    background-origin: content-box;
     position: absolute;
     z-index: 100;
     width: 100%;

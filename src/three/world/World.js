@@ -8,16 +8,18 @@ import { createRoom } from '../components/models/room';
 import { createLights } from '../components/light/createLights';
 import { Resizer } from '../systems/resize/Resizer';
 
+let GLOBALS = {
+    far: 50,
+    near: 0.1,
+};
+
 class World {
     constructor(canvas, resources) {
         this.canvas = canvas;
         this.resources = resources;
 
         // RENDERER
-        this.renderer = createRenderer({
-            canvas: canvas,
-            antialias: true
-        });
+        this.renderer = createRenderer(canvas);
 
         this.canvas = this.renderer.domElement;
 
@@ -65,5 +67,6 @@ class World {
 
 
 export {
-    World
+    World,
+    GLOBALS
 }

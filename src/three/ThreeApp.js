@@ -1,15 +1,9 @@
 import * as THREE from 'three';
 
 import { World } from './world/World'
-import { createRenderer } from './systems/render/renderer'
-import { createScene } from './components/scene/scene'
-import { createCamera } from './components/camera/camera'
-import { createTorusKnot } from './components/models/torusKnot';
-import { createRoom } from './components/models/room';
-import { createLights } from './components/light/createLights';
-import { Resizer } from './systems/resize/Resizer';
+import { KeyInputHandler } from './systems/input/KeyInputHandler'
 
-import t1 from '../assets/images/warp3.png'
+import t1 from '../assets/images/warp1.png'
 
 class ResourceManager {
     constructor() {
@@ -40,18 +34,77 @@ class ResourceManager {
     }
 };
 
+
+
 let world;
 
 class ThreeApp {
     constructor() {
+        // True when the application has been fully initialized
         this.initialized = false;
+
+        // Event listeners
+        // Mainly used to handle mouse input
+        this.listeners = [];
+
+        // Keyboard shortcuts
+        this.shortcuts = [
+            {
+                keys: 'KeyW',
+                action: (e) => {
+                    if(e.getModifierState("Shift")) {
+                        this._look('up');
+                    } else {
+                        this._move('up');
+                    }
+                },
+                onHeld: true
+            },
+
+            {
+                keys: 'KeyA',
+                action: (e) => {
+                    if(e.getModifierState("Shift")) {
+                        this._look('left');
+                    } else {
+                        this._move('left');
+                    }
+                },
+                onHeld: true
+            },
+            {
+                keys: 'KeyS',
+                action: (e) => {
+                    if(e.getModifierState("Shift")) {
+                        this._look('down');
+                    } else {
+                        this._move('down');
+                    }
+                },
+                onHeld: true
+            },
+            {
+                keys: 'KeyD',
+                action: (e) => {
+                    if(e.getModifierState("Shift")) {
+                        this._look('right');
+                    } else {
+                        this._move('right');
+                    }
+                },
+                onHeld: true
+            }
+        ];
     }
 
     initialize(canvas, onProgress, onLoad) {
+
         this.resources = new ResourceManager();
         this.resources.load(onProgress, () => {
 
             world = new World(canvas, this.resources);
+
+            this.canvas = world.canvas;
 
             this.setup();
             onLoad && onLoad();
@@ -60,9 +113,12 @@ class ThreeApp {
         });
     }
 
+    _addListener(listener, callback) {
+        this.listeners.push({listener, callback});
+    }
+
     setup() {
         const rig = world.cameraRig;
-        const canvas = world.canvas;
 
         // Mouse controls
         const mouseDown = (e) => {
@@ -85,19 +141,40 @@ class ThreeApp {
             rig.setAnchor(false); 
         };
 
-        canvas.addEventListener("mousedown", mouseDown);
-        canvas.addEventListener("mousemove", mouseMove);
-        canvas.addEventListener("mouseup", mouseUp);
-        canvas.addEventListener("blur", mouseUp);
+        const scroll = (e) => {
+            rig.zoom(Math.sign(e.deltaY) === 1 ? "out" : "in");
+        };
+
+        const addListener = (listener, callback) => {
+            this.listeners.push({listener, callback});
+        }
+
+        addListener("mousedown", mouseDown);
+        addListener("mousemove", mouseMove);
+        addListener("mouseup", mouseUp);
+        addListener("blur", mouseUp);
+        addListener("wheel", scroll);
+
+        this.keyInputHandler = new KeyInputHandler(window, this.shortcuts);
     }
 
     start(callback) {
+        // Register listeners
+        this.listeners.forEach(({listener, callback}) => {
+            this.canvas.addEventListener(listener, callback);
+        });
+
+        this.keyInputHandler.enable();
+
         // Animation callback
         let then = 0;
         const animate = (now) => { 
             now *= 0.001;
             const delta = now - then;
             then = now;
+
+            // Execute actions linked to keyboard input
+            this.keyInputHandler.executeHeldActions();
 
             // Recursively request another frame
             this.frameID = requestAnimationFrame( animate );
@@ -110,9 +187,6 @@ class ThreeApp {
 
             // Callback 
             callback && callback(delta);
-
-            // Update camera
-            world.camera.update(delta);
         };
 
         // Start animation
@@ -120,6 +194,13 @@ class ThreeApp {
     }
 
     stop() {
+        // Remove listeners
+        this.listeners.forEach(({listener, callback}) => {
+            this.canvas.removeEventListener(listener, callback);
+        });
+
+        this.keyInputHandler.disable();
+
         // Stop animation
         cancelAnimationFrame(this.frameID);
     }
@@ -129,50 +210,12 @@ class ThreeApp {
         world.resize();
     }
 
-    move(direction) {
-        const forward = world.camera.getForward();
-        const right = world.camera.getWorldDirection(new THREE.Vector3()).clone().cross(world.camera.up);
-        right.normalize();
-
-        switch(direction)
-        {
-            case 'up': 
-                world.camera.addForce(forward);
-            break;
-            case 'left': 
-                world.camera.addForce(right.multiplyScalar(-1));
-            break;
-            case 'down': 
-                world.camera.addForce(forward.clone().multiplyScalar(-1));
-            break;
-            case 'right': 
-                world.camera.addForce(right.multiplyScalar(1));
-            break;
-        }
+    _move(direction) {
+        world.cameraRig.move(direction);
     }
 
-    look(direction) {
-        const right = world.camera.getWorldDirection(new THREE.Vector3()).clone().cross(world.camera.up);
-        right.normalize();
-        const speed = 1.0
-        const rotation = new THREE.Vector3();
-
-        switch(direction) 
-        {
-            case 'up': 
-                rotation.x = speed;
-            break;
-            case 'left': 
-                rotation.y = speed;
-            break;
-            case 'down': 
-                rotation.x = -speed;
-            break;
-            case 'right': 
-                rotation.y = -speed;
-            break;
-        }
-        world.camera.addRotation(rotation, true);
+    _look(direction) {
+        world.cameraRig.look(direction);
     }
 
     // Returns the dom element of the renderer

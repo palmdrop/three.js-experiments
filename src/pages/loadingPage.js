@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 import ProgressBar from '../components/indicators/ProgressBar'
 
 import './loadingPage.css'
 
 const LoadingPage = ({ loaded }) => {
+    const backgroundURL = useRef(null);
     const [done, setDone] = useState(false);
 
     const getClasses = (base) => {
@@ -21,12 +22,38 @@ const LoadingPage = ({ loaded }) => {
             setTimeout(() => setDone(true), 1000);
         }
     }, [loaded]);
+    
+    // Create background
+    const getBackground = () => {
+        if(backgroundURL.current) return backgroundURL.current;
+
+        const text = "THREE";
+        const canvas = document.createElement("canvas");
+        const fontSize = 100;
+        canvas.setAttribute("height", fontSize);
+        var context = canvas.getContext('2d');
+        context.font = fontSize + 'px sans-serif';
+        const textMetrics = context.measureText(text);
+
+        canvas.setAttribute("width", textMetrics.width);
+
+        context.font = fontSize + 'px cursive';
+        context.fillStyle = "white";
+        context.fillText(text, 0, fontSize);
+
+        backgroundURL.current = canvas.toDataURL("image/png");
+        return backgroundURL.current;
+    }
 
     return (
         // If not done, display loading screen
         !done ? 
 
-        <div className={getClasses("loading-page")}>
+        <div 
+            className={getClasses("loading-page")}
+            style={{backgroundImage: `url(${getBackground()})`}}
+            
+        >
             <div className={getClasses("loading-page__progress-bar-container")}>
                 <ProgressBar 
                     loaded={loaded}

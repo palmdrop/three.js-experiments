@@ -1,12 +1,14 @@
 import { PhysicsCamera } from './PhysicsCamera'
 import { CameraRig } from './CameraRig'
 
+import { GLOBALS } from '../../world/World'
+
 const createCamera = (width, height) => {
     const camera = new PhysicsCamera(
-        35,           // fov
+        50,           // fov
         width/height, // Aspect ratio
-        0.1,          // near
-        1000          // far
+        GLOBALS.near, // near
+        GLOBALS.far   // far
     );
     camera.position.z = 10; // Move camera away from scene
 

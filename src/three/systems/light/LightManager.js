@@ -1,8 +1,0 @@
-
-class LightManager {
-    
-
-    update(delta) {
-        
-    }
-}

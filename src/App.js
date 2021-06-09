@@ -4,8 +4,6 @@ import { useKeyboardInput } from './hooks/KeyboardInputHook'
 
 import './App.css';
 import T3 from './three/ThreeApp'
-
-import * as THREE from 'three'
 import LoadingPage from './pages/loadingPage';
 
 function App() {
@@ -21,6 +19,7 @@ function App() {
 
   const onLoad = () => {
     //setLoaded(1.0);
+    T3.start();
   };
 
   const [, , , executeHeldActions, initializeKeyActions] = useKeyboardInput(canvasRef.current);
@@ -77,12 +76,12 @@ function App() {
     if(!T3.initialized) {
       // Initialize Three App
       T3.initialize(canvasRef.current, onProgress, onLoad);
-      initializeKeyActions(shortcuts);
+      //initializeKeyActions(shortcuts);
     }
 
-    T3.start(() => {
-      executeHeldActions();
-    });
+    /*T3.start(() => {
+      //executeHeldActions();
+    });*/
 
     // Stop Three App
     return () => {
