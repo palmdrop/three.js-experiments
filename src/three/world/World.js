@@ -11,40 +11,42 @@ import { Resizer } from '../systems/resize/Resizer';
 let GLOBALS = {
     far: 50,
     near: 0.1,
+    backgroundColor: 0x054443
 };
 
 class World {
-    constructor(canvas, resources) {
-        this.canvas = canvas;
-        this.resources = resources;
+    constructor(canvas, assetHandler) {
+        this.assetHandler = assetHandler;
 
         // RENDERER
         this.renderer = createRenderer(canvas);
-
-        this.canvas = this.renderer.domElement;
+        this.canvas = this.renderer.domElement; // Canvas will be created if none is supplied
 
         // CAMERA
         const {camera, rig} = createCamera(this.canvas.width, this.canvas.height);
         this.camera = camera;
         this.cameraRig = rig;
 
-        // FOG
-        const backgroundColor = 0x054443;
+        this.torusKnot = createTorusKnot(this.assetHandler.textures.walls);
+        this.torusKnot.update = function(delta, time) {
+            this.rotation.x += 0.1 * delta;
+            this.rotation.y += 0.2 * delta;
+        };
+
+        this.cube = createRoom(this.assetHandler.textures.walls);
+        this.lights = createLights();
 
         // SCENE
-        this.scene = createScene(backgroundColor);
-        this.torusKnot = createTorusKnot(this.resources.textures.walls);
-        this.cube = createRoom(this.resources.textures.walls);
-        const lights = createLights();
+        this.scene = createScene(GLOBALS.backgroundColor);
 
-        // And add to scene
-        this.scene.add( this.cube );
-        this.scene.add( this.torusKnot );
+        // Add all objects to scene
+        this.scene.add( 
+            this.cube, 
+            this.torusKnot,
+            ...this.lights
+        );
 
-        lights.forEach(light => {
-            this.scene.add( light );
-        });
-
+        // RESIZE
         this.resizer = new Resizer(this.canvas, this.camera, this.renderer, true);
     }
 
@@ -52,11 +54,20 @@ class World {
         this.resizer.resize();
     }
 
-    update(delta) {
-        this.torusKnot.rotation.x += 0 * delta;
-        this.torusKnot.rotation.y += 0 * delta;
+    update(delta, time) {
 
-        this.camera.update(delta);
+        this.camera.update(delta, time);
+
+        // Traverse scene and call update on each object that has
+        // an update function
+
+        // this method will also check if an object has an update function
+        // and if yes, store in separate structure and only update objects that needs update!!!!!
+        this.scene.traverse(object => {
+            if(typeof object.update === "function") {
+                object.update(delta, time);
+            }
+        });
     }
 
     render() {

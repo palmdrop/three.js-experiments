@@ -12,7 +12,7 @@ const createRoom = (texture) => {
             bumpMap: texture,
             bumpScale: 0.2,
             displacementMap: texture,
-            displacementScale: 0.5,
+            displacementScale: 0.0,
             side: THREE.BackSide,
             metalness: 0.4,
             roughness: 0.6,

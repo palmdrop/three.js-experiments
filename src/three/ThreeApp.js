@@ -1,40 +1,9 @@
 import * as THREE from 'three';
 
 import { World } from './world/World'
+import { AnimationLoop } from './systems/loop/AnimationLoop'
 import { KeyInputHandler } from './systems/input/KeyInputHandler'
-
-import t1 from '../assets/images/warp1.png'
-
-class ResourceManager {
-    constructor() {
-        //this.renderer = renderer;
-        this.loadManager = new THREE.LoadingManager();
-        this.textureLoader = new THREE.TextureLoader(this.loadManager);
-    }
-
-    load(onProgress, onLoad) {
-        this._loadResources();
-        if(onLoad) this.loadManager.onLoad = onLoad;
-        if(onProgress) this.loadManager.onProgress = onProgress;
-
-        return this;
-    }
-
-    _loadTexture(path) {
-        const texture = this.textureLoader.load(path);
-        //texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-        return texture;
-    }
-
-    _loadResources() {
-        this.textures = {
-            walls: this._loadTexture(t1),
-            test: this._loadTexture(t1)
-        };
-    }
-};
-
-
+import { AssetHandler } from './systems/assets/AssetHandler'
 
 let world;
 
@@ -47,15 +16,26 @@ class ThreeApp {
         // Mainly used to handle mouse input
         this.listeners = [];
 
+        // Time and animation
+        this.loop = new AnimationLoop(
+            false // Do not calculate frame rate
+        );
+
         // Keyboard shortcuts
+        const move = (direction) => {
+            world.cameraRig.move(direction);
+        };
+        const look = (direction) => {
+            world.cameraRig.look(direction);
+        };
         this.shortcuts = [
             {
                 keys: 'KeyW',
                 action: (e) => {
                     if(e.getModifierState("Shift")) {
-                        this._look('up');
+                        look('up');
                     } else {
-                        this._move('up');
+                        move('up');
                     }
                 },
                 onHeld: true
@@ -65,9 +45,9 @@ class ThreeApp {
                 keys: 'KeyA',
                 action: (e) => {
                     if(e.getModifierState("Shift")) {
-                        this._look('left');
+                        look('left');
                     } else {
-                        this._move('left');
+                        move('left');
                     }
                 },
                 onHeld: true
@@ -76,9 +56,9 @@ class ThreeApp {
                 keys: 'KeyS',
                 action: (e) => {
                     if(e.getModifierState("Shift")) {
-                        this._look('down');
+                        look('down');
                     } else {
-                        this._move('down');
+                        move('down');
                     }
                 },
                 onHeld: true
@@ -87,9 +67,9 @@ class ThreeApp {
                 keys: 'KeyD',
                 action: (e) => {
                     if(e.getModifierState("Shift")) {
-                        this._look('right');
+                        look('right');
                     } else {
-                        this._move('right');
+                        move('right');
                     }
                 },
                 onHeld: true
@@ -98,65 +78,37 @@ class ThreeApp {
     }
 
     initialize(canvas, onProgress, onLoad) {
+        this.assetHandler = new AssetHandler();
+        // Load resources, then initialize world, listeners, etc
+        this.assetHandler.load(onProgress, () => {
+            // Initialize world
+            world = new World(canvas, this.assetHandler);
+            this.canvas = world.canvas; // If no canvas is supplied, the world will create one
 
-        this.resources = new ResourceManager();
-        this.resources.load(onProgress, () => {
+            // Mouse controls
+            const rig = world.cameraRig;
+            const mouseDown = (e) => rig.setAnchor(true, new THREE.Vector3(e.clientY, e.clientX, 0.0));
+            const mouseMove = (e) => rig.anchorRotate(new THREE.Vector3(e.clientY, e.clientX, 0.0));
+            const mouseUp   = (e) => rig.setAnchor(false); 
+            const scroll    = (e) => rig.zoom(Math.sign(e.deltaY) === 1 ? "out" : "in");
+            const addListener = (listener, callback) => this.listeners.push({listener, callback});
 
-            world = new World(canvas, this.resources);
+            // Add listeners
+            addListener("mousedown", mouseDown);
+            addListener("mousemove", mouseMove);
+            addListener("mouseup", mouseUp);
+            addListener("blur", mouseUp);
+            addListener("wheel", scroll);
 
-            this.canvas = world.canvas;
+            // Initialize keyboard input
+            this.keyInputHandler = new KeyInputHandler(window, this.shortcuts);
 
-            this.setup();
-            onLoad && onLoad();
-
+            // Set initailized and call onLoad callback
             this.initialized = true;
+            onLoad && onLoad();
         });
     }
 
-    _addListener(listener, callback) {
-        this.listeners.push({listener, callback});
-    }
-
-    setup() {
-        const rig = world.cameraRig;
-
-        // Mouse controls
-        const mouseDown = (e) => {
-            rig.setAnchor(true, new THREE.Vector3(
-                e.clientY,
-                e.clientX,
-                0.0
-            ));
-        };
-
-        const mouseMove = (e) => {
-            rig.anchorRotate(new THREE.Vector3(
-                e.clientY,
-                e.clientX,
-                0.0
-            ));
-        };
-
-        const mouseUp = (e) => {
-            rig.setAnchor(false); 
-        };
-
-        const scroll = (e) => {
-            rig.zoom(Math.sign(e.deltaY) === 1 ? "out" : "in");
-        };
-
-        const addListener = (listener, callback) => {
-            this.listeners.push({listener, callback});
-        }
-
-        addListener("mousedown", mouseDown);
-        addListener("mousemove", mouseMove);
-        addListener("mouseup", mouseUp);
-        addListener("blur", mouseUp);
-        addListener("wheel", scroll);
-
-        this.keyInputHandler = new KeyInputHandler(window, this.shortcuts);
-    }
 
     start(callback) {
         // Register listeners
@@ -164,33 +116,23 @@ class ThreeApp {
             this.canvas.addEventListener(listener, callback);
         });
 
+        // Enable keyboard input
         this.keyInputHandler.enable();
 
-        // Animation callback
-        let then = 0;
-        const animate = (now) => { 
-            now *= 0.001;
-            const delta = now - then;
-            then = now;
+        // Start animation loop
+        this.loop.start((delta, now) => {
+            if(!this.initialized) return;
 
             // Execute actions linked to keyboard input
             this.keyInputHandler.executeHeldActions();
 
-            // Recursively request another frame
-            this.frameID = requestAnimationFrame( animate );
-
-            if(!this.initialized) return;
-
             // Render the scene
-            world.update(delta);
+            world.update(delta, now);
             world.render();
 
             // Callback 
             callback && callback(delta);
-        };
-
-        // Start animation
-        requestAnimationFrame(animate);
+        });
     }
 
     stop() {
@@ -199,23 +141,13 @@ class ThreeApp {
             this.canvas.removeEventListener(listener, callback);
         });
 
-        this.keyInputHandler.disable();
-
-        // Stop animation
-        cancelAnimationFrame(this.frameID);
+        // Stop animaton loop
+        this.loop.stop();
     }
 
     resize() {
         if(!this.initialized) return;
         world.resize();
-    }
-
-    _move(direction) {
-        world.cameraRig.move(direction);
-    }
-
-    _look(direction) {
-        world.cameraRig.look(direction);
     }
 
     // Returns the dom element of the renderer

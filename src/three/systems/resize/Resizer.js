@@ -8,6 +8,8 @@ class Resizer {
         this.useDevicePixelRatio = useDevicePixelRatio;
         
         this.resize();
+
+        this.onResizeCallback = null;
     }
 
     resize() {
@@ -29,9 +31,19 @@ class Resizer {
         this.renderer.setSize( newSize.x, newSize.y, false );
 
         // Update camera aspect ratio
-        this.camera.aspect = width / height;
+        this.camera.aspect = newSize.x / newSize.y;
         this.camera.updateProjectionMatrix();
+
+        // On resize callback
+        if(typeof this.onResizeCallback === "function") {
+            this.onResizeCallback(newSize.x, newSize.y);
+        }
     }
+
+    onResize(callback) {
+        this.onResizeCallback = callback;
+    }
+
 };
 
 export { Resizer };

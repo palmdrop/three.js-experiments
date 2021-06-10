@@ -21,20 +21,44 @@ const createLights = () => {
     const light3 = new THREE.PointLight(
         0x8A888F, // Color
         500,        // Intensity
-        7,       // Distance
+        16,       // Distance
         2         // Decay
     );
-    light3.position.set(0, 0, 0);
+    light3.position.set(2, 0, 0);
 
     const ambientLight = new THREE.AmbientLight( 0x202020 );
 
-    // Create a directional light
-    //const light = new THREE.DirectionalLight('white', 8);
+    // Moving light
 
-    // move the light right, up, and towards us
-    //light.position.set(10, 10, 10);
+    const movingLight = new (class extends THREE.Object3D {
+        constructor(...args) {
+            super();
 
-    return [light1, light2, light3, ambientLight];
+            const light = new THREE.PointLight(...args);
+            light.position.set(5, 0, 0);
+
+            this.add(light);
+
+            //super(...args);
+        }
+
+        update(delta = 0, time = 0) {
+            this.rotation.y += delta * 1;
+        }
+    })(
+        0x8A888F, // Color
+        200,        // Intensity
+        17,       // Distance
+        2         // Decay
+    );
+    movingLight.position.set(2, 0, 0);
+
+    return [
+        //light1, 
+        //light2, 
+        //light3, 
+        movingLight,
+        ambientLight];
 };
 
 export { createLights }
