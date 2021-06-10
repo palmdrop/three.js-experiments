@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 
-import t1 from '../../../assets/images/warp1.png'
+import { GLOBALS } from '../../world/World'
+
+import t1 from '../../../assets/images/warp3.png'
 
 class AssetHandler {
     constructor() {
@@ -18,6 +20,7 @@ class AssetHandler {
 
     _loadTexture(path) {
         const texture = this.textureLoader.load(path);
+        if(GLOBALS.useSRGB) texture.encoding = THREE.sRGBEncoding;
         return texture;
     }
 

@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 const createRoom = (texture) => {
     const cubeSize = 18;
-    const detail = 200;
+    const detail = 100;
     const geometry = 
         new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize, detail, detail, detail);
 
@@ -12,10 +12,10 @@ const createRoom = (texture) => {
             bumpMap: texture,
             bumpScale: 0.2,
             displacementMap: texture,
-            displacementScale: 0.0,
+            displacementScale: 1.0,
             side: THREE.BackSide,
-            metalness: 0.4,
-            roughness: 0.6,
+            metalness: 0.0,
+            roughness: 0.2,
         });
 
     material.dithering = true;

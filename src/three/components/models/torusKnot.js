@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 const createTorusKnot = (texture) => {
-    const geometry = new THREE.TorusKnotGeometry( 0.04, 0.4, 200, 100 );
+    const geometry = new THREE.TorusKnotBufferGeometry( 0.04, 0.4, 200, 100 );
     const material = new THREE.MeshStandardMaterial( { 
         map: texture,
         metalness: 0.3,

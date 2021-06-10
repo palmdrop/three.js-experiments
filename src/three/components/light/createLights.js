@@ -54,10 +54,10 @@ const createLights = () => {
     movingLight.position.set(2, 0, 0);
 
     return [
-        //light1, 
-        //light2, 
-        //light3, 
-        movingLight,
+        light1, 
+        light2, 
+        light3, 
+        //movingLight,
         ambientLight];
 };
 

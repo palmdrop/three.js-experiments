@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { cloneToVector3 } from '../../utils/utils'
+
 // Module for handling rotation
 export class RotationModule {
     constructor(preserveMomentum, friction, speed) {
@@ -26,6 +28,9 @@ export class RotationModule {
 
         // Current forward direction (rotation applied to intiial forward direction)
         this.forward = this.initialForward;
+
+        // Temporary vectors
+        this.tempVector = new THREE.Vector3(0, 0, 0);
     }
 
     // Updates the rotation
@@ -34,7 +39,7 @@ export class RotationModule {
         if(this.velocity.lengthSq() === 0) return;
 
         // Add rotation velocity to current rotation
-        this._rotate(this.velocity.clone().multiplyScalar(delta * this.speed));
+        this._rotate(cloneToVector3(this.velocity, this.tempVector).multiplyScalar(delta * this.speed));
 
         // If momentum should be preserved, apply friction
         if(this.preserveMomentum) {

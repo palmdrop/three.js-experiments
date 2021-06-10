@@ -11,12 +11,17 @@ import { Resizer } from '../systems/resize/Resizer';
 let GLOBALS = {
     far: 50,
     near: 0.1,
-    backgroundColor: 0x054443
+    backgroundColor: 0x455443,
+
+    useSRGB: false,
 };
 
 class World {
     constructor(canvas, assetHandler) {
         this.assetHandler = assetHandler;
+
+        // Array of objects that require update each frame
+        this.updateables = [];
 
         // RENDERER
         this.renderer = createRenderer(canvas);
@@ -27,27 +32,43 @@ class World {
         this.camera = camera;
         this.cameraRig = rig;
 
+        // SCENE
+        this.scene = createScene(GLOBALS.backgroundColor);
+
+        // MESH
         this.torusKnot = createTorusKnot(this.assetHandler.textures.walls);
         this.torusKnot.update = function(delta, time) {
             this.rotation.x += 0.1 * delta;
             this.rotation.y += 0.2 * delta;
         };
 
-        this.cube = createRoom(this.assetHandler.textures.walls);
         this.lights = createLights();
 
-        // SCENE
-        this.scene = createScene(GLOBALS.backgroundColor);
+        for(var i = 0; i < 5; i++) {
+            const cube = createRoom(this.assetHandler.textures.walls);
+            const scale = (i + 1) * 0.5 + 0.5;
+            cube.scale.set(scale, scale, scale);
+            this.scene.add(cube);
+        }
+
 
         // Add all objects to scene
         this.scene.add( 
-            this.cube, 
-            this.torusKnot,
+            //this.cube, 
+            //this.torusKnot,
             ...this.lights
         );
 
         // RESIZE
         this.resizer = new Resizer(this.canvas, this.camera, this.renderer, true);
+
+        // Add objects to updateables array
+        this.scene.traverse(object => {
+            if(typeof object.update === "function") {
+                this.updateables.push(object);
+            }
+        });
+        this.updateables.push(camera);
     }
 
     resize() {
@@ -55,18 +76,9 @@ class World {
     }
 
     update(delta, time) {
-
-        this.camera.update(delta, time);
-
-        // Traverse scene and call update on each object that has
-        // an update function
-
-        // this method will also check if an object has an update function
-        // and if yes, store in separate structure and only update objects that needs update!!!!!
-        this.scene.traverse(object => {
-            if(typeof object.update === "function") {
-                object.update(delta, time);
-            }
+        //this.camera.update(delta, time);
+        this.updateables.forEach((object) => {
+            object.update(delta, time);
         });
     }
 
