@@ -1,3 +1,10 @@
+# THREE.JS EXPERIMENTS
+An exploratory repository for learning React and Three.js. At this point, the project lacks clear direction -- it's simply a general Three.js + React setup with a modular structure. I have some ideas for 3D projects. When these take shape, this repository might change name and/or another repository might pop up.
+
+This repository is made public to more easily share my code.
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
