@@ -3,28 +3,12 @@ import * as THREE from 'three'
 const createLights = () => {
     // Create light
     const light1 = new THREE.PointLight(
-        0xFF897F, // Color
-        500,        // Intensity
+        0xFFD99F, // Color
+        40,        // Intensity
         15,       // Distance
         2         // Decay
     );
-    light1.position.set(4, 4, 3);
-
-    const light2 = new THREE.PointLight(
-        0x7A886F, // Color
-        500,        // Intensity
-        15,       // Distance
-        2         // Decay
-    );
-    light2.position.set(-2, -3, -3);
-
-    const light3 = new THREE.PointLight(
-        0x8A888F, // Color
-        500,        // Intensity
-        16,       // Distance
-        2         // Decay
-    );
-    light3.position.set(2, 0, 0);
+    light1.position.set(0, 0, 0);
 
     const ambientLight = new THREE.AmbientLight( 0x202020 );
 
@@ -47,7 +31,7 @@ const createLights = () => {
         }
     })(
         0x8A888F, // Color
-        200,        // Intensity
+        200,      // Intensity
         17,       // Distance
         2         // Decay
     );
@@ -55,8 +39,6 @@ const createLights = () => {
 
     return [
         light1, 
-        light2, 
-        light3, 
         //movingLight,
         ambientLight];
 };

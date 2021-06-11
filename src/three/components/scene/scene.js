@@ -7,6 +7,7 @@ const createScene = (backgroundColor) => {
 
     scene.background = new THREE.Color(backgroundColor);
     if(GLOBALS.useSRGB) scene.background.convertSRGBToLinear();
+
     scene.fog = new THREE.Fog(
         backgroundColor, // Color
         3,               // Near

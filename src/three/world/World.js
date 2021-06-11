@@ -44,17 +44,11 @@ class World {
 
         this.lights = createLights();
 
-        for(var i = 0; i < 5; i++) {
-            const cube = createRoom(this.assetHandler.textures.walls);
-            const scale = (i + 1) * 0.5 + 0.5;
-            cube.scale.set(scale, scale, scale);
-            this.scene.add(cube);
-        }
-
+        this.room = createRoom(assetHandler);
 
         // Add all objects to scene
         this.scene.add( 
-            //this.cube, 
+            this.room,
             //this.torusKnot,
             ...this.lights
         );
