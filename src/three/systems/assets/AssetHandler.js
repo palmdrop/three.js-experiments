@@ -1,50 +1,80 @@
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import { GLOBALS } from '../../world/World'
-
-import t1 from '../../../assets/images/warp3.png'
-
-import c1 from '../../../assets/textures/concrete1.png'
-import c2 from '../../../assets/textures/concrete2.png'
-import c3 from '../../../assets/textures/concrete3.png'
-import c4 from '../../../assets/textures/concrete4.png'
-import c5 from '../../../assets/textures/concrete5.png'
 
 class AssetHandler {
     constructor() {
         this.loadManager = new THREE.LoadingManager();
+
         this.textureLoader = new THREE.TextureLoader(this.loadManager);
+        this.gltfLoader = new GLTFLoader();
+
+        // Asset cache
+        this.cache = new Map();
+
+        // Number of assets left to load
+        this.toLoad = 0;
+
+        // Number of assets loaded
+        this.loaded = 0;
+
+        // On progress callback
+        this.onProgress = null;
     }
 
-    load(onProgress, onLoad) {
-        this._loadResources();
+
+    onLoad(onProgress, onLoad) {
         if(onLoad) this.loadManager.onLoad = onLoad;
-        if(onProgress) this.loadManager.onProgress = onProgress;
+        //if(onProgress) this.loadManager.onProgress = onProgress;
+        if(onProgress) this.onProgress = onProgress;
 
         return this;
     }
 
-    _loadTexture(path) {
-        const texture = this.textureLoader.load(path);
-        if(GLOBALS.useSRGB) texture.encoding = THREE.sRGBEncoding;
-        return texture;
+    _loaded(path) {
+        this.loaded++;
+        this.onProgress && this.onProgress(path, this.loaded, this.toLoad);
     }
 
-    _loadResources() {
-        this.textures = {
-            //walls: this._loadTexture(t1),
-            walls: [
-                this._loadTexture(c5),
-                this._loadTexture(c2),
-                this._loadTexture(c3),
-                this._loadTexture(c1),
-                this._loadTexture(c4),
-                this._loadTexture(c1),
-            ]
-        };
+    _load(path, method) {
+        // If asset is already loaded, return cached instance
+        if(this.cache.has(path)) {
+            return this.cache.get(path);
+        }
+
+        // Increment number of assets to load
+        this.toLoad++;
+
+        // Otherwise, load asset
+        const asset = method(path);
+
+        // And add the asset to the cache
+        this.cache.set(path, asset);
+
+        // And return the final asset
+        return asset;
+    }
+
+    loadTexture(path) {
+        return this._load(path, (p) => { 
+            const texture = this.textureLoader.load(p, (_) => this._loaded(path));
+            if(GLOBALS.useSRGB) texture.encoding = THREE.sRGBEncoding;
+            return texture;
+        });
+    }
+
+    async loadGLTF(path) {
+        return this._load(path, async (p) => {
+            const model = await this.gltfLoader.loadAsync(p);
+            return model;
+        });
     }
 };
 
+const ASSETHANDLER = new AssetHandler();
+
 export {
-    AssetHandler
+    ASSETHANDLER
+    //AssetHandler
 }

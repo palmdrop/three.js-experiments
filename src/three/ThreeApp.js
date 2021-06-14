@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { World } from './world/World'
 import { AnimationLoop } from './systems/loop/AnimationLoop'
 import { KeyInputHandler } from './systems/input/KeyInputHandler'
-import { AssetHandler } from './systems/assets/AssetHandler'
+import { ASSETHANDLER } from './systems/assets/AssetHandler';
+//import { AssetHandler } from './systems/assets/AssetHandler'
 
 let world;
 
@@ -77,12 +78,13 @@ class ThreeApp {
         ];
     }
 
-    initialize(canvas, onProgress, onLoad) {
-        this.assetHandler = new AssetHandler();
+    async initialize(canvas, onProgress, onLoad) {
+        //this.assetHandler = new AssetHandler();
         // Load resources, then initialize world, listeners, etc
-        this.assetHandler.load(onProgress, () => {
+        world = new World(canvas);
+        world.initialize();
+        ASSETHANDLER.onLoad(onProgress, () => {
             // Initialize world
-            world = new World(canvas, this.assetHandler);
             this.canvas = world.canvas; // If no canvas is supplied, the world will create one
 
             // Mouse controls
@@ -128,7 +130,7 @@ class ThreeApp {
 
             // Render the scene
             world.update(delta, now);
-            world.render();
+            world.render(delta);
 
             // Callback 
             callback && callback(delta);

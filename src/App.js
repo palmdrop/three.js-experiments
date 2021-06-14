@@ -19,6 +19,7 @@ function App() {
     if(!T3.initialized) {
       // Initialize Three App
       T3.initialize(canvasRef.current, onProgress, () => {
+        setLoaded(1.0);
         T3.start();
       });
     }

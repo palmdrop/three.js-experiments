@@ -6,7 +6,11 @@ import { createCamera } from '../components/camera/camera'
 import { createTorusKnot } from '../components/models/torusKnot';
 import { createRoom } from '../components/models/room';
 import { createLights } from '../components/light/createLights';
+import { createScreen } from '../components/models/screen';
+import { loadDuck } from '../components/models/duck';
 import { Resizer } from '../systems/resize/Resizer';
+
+//import { ASSETHANDLER } from '../systems/assets/AssetHandler'
 
 let GLOBALS = {
     far: 50,
@@ -17,8 +21,8 @@ let GLOBALS = {
 };
 
 class World {
-    constructor(canvas, assetHandler) {
-        this.assetHandler = assetHandler;
+    constructor(canvas) {
+        //this.assetHandler = assetHandler;
 
         // Array of objects that require update each frame
         this.updateables = [];
@@ -35,21 +39,30 @@ class World {
         // SCENE
         this.scene = createScene(GLOBALS.backgroundColor);
 
-        // MESH
-        this.torusKnot = createTorusKnot(this.assetHandler.textures.walls);
+        // MODELS
+        this.torusKnot = createTorusKnot();
         this.torusKnot.update = function(delta, time) {
             this.rotation.x += 0.1 * delta;
             this.rotation.y += 0.2 * delta;
         };
 
-        this.lights = createLights();
+        this.room = createRoom();
 
-        this.room = createRoom(assetHandler);
+        const {renderToScreen, screen} = createScreen(this.renderer, this.scene, this.camera);
+        this.screen = screen;
+        //this.target1 = target1;
+        //this.target2 = target2;
+        this.renderToScreen = renderToScreen;
+        this.screen.position.set(0, 0.5, -4.9);
+
+        // LIGHTS
+        this.lights = createLights();
 
         // Add all objects to scene
         this.scene.add( 
             this.room,
             //this.torusKnot,
+            this.screen,
             ...this.lights
         );
 
@@ -65,6 +78,12 @@ class World {
         this.updateables.push(camera);
     }
 
+    async initialize() {
+        this.duck = await loadDuck();
+        this.scene.add(this.duck);
+
+    }
+
     resize() {
         this.resizer.resize();
     }
@@ -76,8 +95,18 @@ class World {
         });
     }
 
-    render() {
+    render(delta) {
+        /*if(this.screen.first) {
+            this.renderer.setRenderTarget(this.target2);
+        } else {
+            this.renderer.setRenderTarget(this.target1);
+        }
+        this.renderer.render( this.scene, this.camera );
+        */
+        this.renderToScreen(delta);
+
         // Render the scene
+        this.renderer.setRenderTarget(null);
         this.renderer.render( this.scene, this.camera );
     }
 }
