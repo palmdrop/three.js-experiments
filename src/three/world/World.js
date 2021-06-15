@@ -54,6 +54,7 @@ class World {
         //this.target2 = target2;
         this.renderToScreen = renderToScreen;
         this.screen.position.set(0, 0.5, -4.9);
+        this.screen.rotation.z = 0.2;
 
         // LIGHTS
         this.lights = createLights();

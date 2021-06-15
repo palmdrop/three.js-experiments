@@ -2,6 +2,7 @@ import * as THREE from 'three'
 
 export class CameraRig {
     constructor(camera) {
+        if(!camera) throw new Error("Camera cannot be null");
         this.camera = camera;
 
         // For mouse drag movement
@@ -11,8 +12,6 @@ export class CameraRig {
             current: null,
             sensitivity: 0.05
         };
-
-        if(!camera) throw new Error("Camera cannot be null");
     }
 
     zoom(direction) {

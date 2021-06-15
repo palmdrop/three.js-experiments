@@ -83,6 +83,7 @@ export class PhysicsCamera extends THREE.PerspectiveCamera {
             this._lookForward();
         }
 
+
         // ZOOM
         this._zoomModule.update();
     }
