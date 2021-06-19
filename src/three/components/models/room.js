@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { ASSETHANDLER } from '../../systems/assets/AssetHandler';
+import { GLOBALS } from '../../world/World'
 
 import c1 from '../../../assets/textures/concrete1.png'
 import c2 from '../../../assets/textures/concrete2.png'
@@ -7,40 +8,42 @@ import c3 from '../../../assets/textures/concrete3.png'
 import c4 from '../../../assets/textures/concrete4.png'
 import c5 from '../../../assets/textures/concrete5.png'
 
-const createFaceMaterial = (texture) => {
+import brickWall1 from '../../../assets/textures/brick-wall1.jpg'
+import brickWall2 from '../../../assets/textures/brick-wall2.jpg'
+import darkWall from '../../../assets/textures/dark-wall.jpg'
+import wall1 from '../../../assets/textures/wall1.jpg'
+import wall2 from '../../../assets/textures/wall2.jpg'
+
+const createFaceMaterial = (texture, color) => {
     const material = new THREE.MeshStandardMaterial({
-        color: "#fff9fa",
+        color: color | "#ffffff",
         map: texture,
-        //bumpMap: texture,
-        //bumpScale: 0.1,
-        //displacementMap: texture,
-        //displacementScale: 0.0,
+        bumpMap: texture,
+        bumpScale: 0.1,
         side: THREE.BackSide,
         metalness: 0.0,
-        roughness: 1.0,
-        roughnessMap: texture
+        roughness: 0.8,
     });
     material.dithering = true;
     return material;
 };
 
 const createRoom = () => {
-    const size = 10;
-    const width = size;
-    const depth = size;
-    const height = size / 2;
+    const width = GLOBALS.roomDimensions.width;
+    const depth = GLOBALS.roomDimensions.depth;
+    const height = GLOBALS.roomDimensions.height;
 
     const detail = 100;
     const geometry = 
         new THREE.BoxBufferGeometry(width, height, depth, detail, detail, detail);
 
     const textures = [
-        ASSETHANDLER.loadTexture(c1),
-        ASSETHANDLER.loadTexture(c2),
-        ASSETHANDLER.loadTexture(c3),
-        ASSETHANDLER.loadTexture(c4),
-        ASSETHANDLER.loadTexture(c5),
-        ASSETHANDLER.loadTexture(c4),
+        ASSETHANDLER.loadTexture(darkWall), // Right wall
+        ASSETHANDLER.loadTexture(darkWall), // Left wall
+        ASSETHANDLER.loadTexture(wall1, "#232323"), // Roof
+        ASSETHANDLER.loadTexture(wall1, "#232323"), // Floor
+        ASSETHANDLER.loadTexture(darkWall), // Back wall
+        ASSETHANDLER.loadTexture(darkWall), // Front wall
     ];
     const materials = textures.map(createFaceMaterial);
 

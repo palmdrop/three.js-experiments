@@ -130,7 +130,7 @@ class ThreeApp {
 
             // Render the scene
             world.update(delta, now);
-            world.render(delta);
+            world.render(delta, now);
 
             // Callback 
             callback && callback(delta);

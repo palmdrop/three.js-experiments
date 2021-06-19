@@ -1,23 +1,52 @@
 import * as THREE from 'three'
+import { GLOBALS } from '../../world/World';
 
 const createLights = () => {
-    // Create light
-    const light1 = new THREE.PointLight(
-        0xFFD99F, // Color
-        20,        // Intensity
-        15,       // Distance
-        2         // Decay
+    // Ceiling light
+    const ceilingLight = new THREE.PointLight(
+        //0xFFD98F, // Color
+        0xFFFFFF,
+        25,        // Intensity
+        30,       // Distance
+        1.5         // Decay
     );
-    light1.position.set(0, 2, 0);
+    ceilingLight.position.set(0, GLOBALS.roomDimensions.height / 2 - 0.1, 0);
 
-    light1.castShadow = true;
-    light1.shadow.radius = 7;
+    ceilingLight.castShadow = true;
+    ceilingLight.shadow.radius = 7;
+
+    // Corner lights
+    const cornerOffset = 0.5;
+    const cornerLight1 = new THREE.PointLight(
+        0x7FFF88,
+        30,
+        30,
+        2.0
+    );
+    cornerLight1.position.set(
+        -GLOBALS.roomDimensions.width/2 + cornerOffset,
+        -GLOBALS.roomDimensions.height / 2 + cornerOffset,
+        -GLOBALS.roomDimensions.depth / 2 + cornerOffset,
+    )
+
+    const cornerLight2 = new THREE.PointLight(
+        0x887766,
+        30,
+        30,
+        2.0
+    );
+    cornerLight2.position.set(
+        GLOBALS.roomDimensions.width/2 - cornerOffset,
+        GLOBALS.roomDimensions.height / 2 - cornerOffset,
+        -GLOBALS.roomDimensions.depth / 2 + cornerOffset,
+    )
 
     // Ambient/hemisphere
-
     const ambientLight = new THREE.AmbientLight( 0x202020 );
 
-    const hemisphereLight = new THREE.HemisphereLight(0x665533, 0x334455, 1);
+    //const hemisphereLight = new THREE.HemisphereLight(0x665533, 0x334455, 1);
+    //const directionalLight = new THREE.DirectionalLight(0xffffff, 1 );
+    //directionalLight.position.set(5, 10, 20);
 
     // Moving light
 
@@ -71,9 +100,12 @@ const createLights = () => {
     movingLight.position.set(0.000, 0, 0);
 
     return [
-        light1, 
-        hemisphereLight,
-        movingLight,
+        ceilingLight, 
+        cornerLight1,
+        cornerLight2,
+        //hemisphereLight,
+        //directionalLight,
+        //movingLight,
         ambientLight];
 };
 

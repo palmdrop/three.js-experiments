@@ -18,6 +18,12 @@ let GLOBALS = {
     backgroundColor: 0x455443,
 
     useSRGB: false,
+
+    roomDimensions: {
+        width: 10,
+        height: 7,
+        depth: 10
+    }
 };
 
 class World {
@@ -48,12 +54,11 @@ class World {
 
         this.room = createRoom();
 
-        const {renderToScreen, screen} = createScreen(this.renderer, this.scene, this.camera);
+        const {renderToScreen, screen} = createScreen(this.renderer, this.scene, this.camera,
+        );
         this.screen = screen;
-        //this.target1 = target1;
-        //this.target2 = target2;
         this.renderToScreen = renderToScreen;
-        this.screen.position.set(0, 0.5, -4.9);
+        this.screen.position.set(0, 0.5, -GLOBALS.roomDimensions.depth / 2 + 0.01 );
         this.screen.rotation.z = 0.2;
 
         // LIGHTS
@@ -96,7 +101,7 @@ class World {
         });
     }
 
-    render(delta) {
+    render(delta, time) {
         /*if(this.screen.first) {
             this.renderer.setRenderTarget(this.target2);
         } else {
@@ -104,7 +109,7 @@ class World {
         }
         this.renderer.render( this.scene, this.camera );
         */
-        this.renderToScreen(delta);
+        this.renderToScreen(delta, time);
 
         // Render the scene
         this.renderer.setRenderTarget(null);
