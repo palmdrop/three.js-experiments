@@ -21,6 +21,9 @@ var TVShader = {
         'noiseFrequency': { value: 10 },
         'time': { value: 0.0 },
 
+        // Other distortions
+        'rotation': { value: 0.0 },
+
         // Color control
         'contrast': { value: 1.1 },
         'brightness': { value: 1.0 },
@@ -28,34 +31,36 @@ var TVShader = {
 
     vertexShader: /* glsl */`
 
-		varying vec2 vUv;
-		void main() {
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-		}`,
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }`,
 
     fragmentShader: /* glsl */`
-        #define M_PI 3.1415926535897932384626433832795
+      #define M_PI 3.1415926535897932384626433832795
 
-		uniform float opacity;
-		uniform sampler2D tDiffuse;
-        uniform sampler2D overlayTexture;
-		varying vec2 vUv;
+      uniform float opacity;
+      uniform sampler2D tDiffuse;
+      uniform sampler2D overlayTexture;
+		  varying vec2 vUv;
 
-        uniform vec2 redOffset;
-        uniform vec2 greenOffset;
-        uniform vec2 blueOffset;
+      uniform vec2 redOffset;
+      uniform vec2 greenOffset;
+      uniform vec2 blueOffset;
 
-        uniform vec2 warpOffset;
+      uniform vec2 warpOffset;
 
-        uniform float noiseAmount;
-        uniform float noiseFrequency;
-        uniform float time;
+      uniform float noiseAmount;
+      uniform float noiseFrequency;
+      uniform float time;
 
-        uniform float contrast;
-        uniform float brightness;
+      uniform float rotation;
 
-        // Start Ashima 2D Simplex Noise
+      uniform float contrast;
+      uniform float brightness;
+
+      // Start Ashima 2D Simplex Noise
 
 		vec3 mod289(vec3 x) {
 		  return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -106,44 +111,51 @@ var TVShader = {
 
 		// End Ashima 2D Simplex Noise
 
-        vec4 rgbShift(sampler2D textureImage, vec2 uv, vec2 rOffset, vec2 gOffset, vec2 bOffset) {
-            float a = snoise( uv * 10.0 );
-            vec4 sr = texture2D(textureImage, uv + rOffset * a);
-            vec4 sg = texture2D(textureImage, uv + gOffset * a);
-            vec4 sb = texture2D(textureImage, uv + bOffset * a);
-            return vec4( sr.r, sg.g, sb.b, sr.a );
-        }
+    vec4 rgbShift(sampler2D textureImage, vec2 uv, vec2 rOffset, vec2 gOffset, vec2 bOffset) {
+        float a = snoise( uv * 10.0 );
+        vec4 sr = texture2D(textureImage, uv + rOffset * a);
+        vec4 sg = texture2D(textureImage, uv + gOffset * a);
+        vec4 sb = texture2D(textureImage, uv + bOffset * a);
+        return vec4( sr.r, sg.g, sb.b, sr.a );
+    }
 
-        vec2 uvWarp(vec2 uv, vec2 offset) {
-            float aX = cos(uv.x * M_PI) * sin(uv.y * M_PI);
-            float aY = cos(uv.y * M_PI) * sin(uv.x * M_PI);
+    vec2 uvWarp(vec2 uv, vec2 offset) {
+        float aX = cos(uv.x * M_PI) * sin(uv.y * M_PI);
+        float aY = cos(uv.y * M_PI) * sin(uv.x * M_PI);
 
-            uv.x += aX * offset.x;
-            uv.y += aY * offset.y;
-            //return vec2(1.0 - uv.x, uv.y);
-            return uv;
-        }
+        uv.x += aX * offset.x;
+        uv.y += aY * offset.y;
+        //return vec2(1.0 - uv.x, uv.y);
+        return uv;
+    }
 
+    vec2 rotate(vec2 p, vec2 center, float angle) {
+        float x = cos(angle) * (p.x - center.x) - sin(angle) * (p.y - center.y) + center.x;
+        float y = sin(angle) * (p.x - center.x) + cos(angle) * (p.y - center.y) + center.y;
+        return vec2(x, y);
+    }
 
 		void main() {
-            vec2 uv = uvWarp(vUv, 
-                warpOffset
-            );
+        vec2 uv = uvWarp(vUv, 
+            warpOffset
+        );
 
-            vec4 texel = rgbShift( tDiffuse, uv, 
-                redOffset,
-                greenOffset,
-                blueOffset
-            );
+        uv = rotate(uv, vec2(0.5, 0.5), rotation);
 
-            vec4 overlay = texture2D(overlayTexture, vUv);
+        vec4 texel = rgbShift( tDiffuse, uv, 
+            redOffset,
+            greenOffset,
+            blueOffset
+        );
 
-            float ns = noiseAmount;
-            float f = noiseFrequency;
-            float r = 1.0 - ns * snoise( f * uv * vec2(5, 20) + vec2(time * 2.8, 0.0));
-            float g = 1.0 - ns * snoise( f * uv * vec2(10, 30) + vec2(0, -time * 2.6));
-            float b = 1.0 - ns * snoise( f * uv * vec2(20, 5) + vec2(0, time * 3.5));
-			gl_FragColor = pow(brightness * opacity * (texel + overlay) * vec4(r, g, b, 1.0), vec4(contrast));
+        vec4 overlay = texture2D(overlayTexture, vUv);
+
+        float ns = noiseAmount;
+        float f = noiseFrequency;
+        float r = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(5, 20) + vec2(time * 2.8, 0.0));
+        float g = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(10, 30) + vec2(0, -time * 2.6));
+        float b = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(20, 5) + vec2(0, time * 3.5));
+			  gl_FragColor = pow(brightness * opacity * (texel + overlay) * vec4(r, g, b, 1.0), vec4(contrast));
 		}`
 
 };

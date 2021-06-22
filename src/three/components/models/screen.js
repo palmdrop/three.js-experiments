@@ -1,20 +1,26 @@
 import * as THREE from 'three';
 
+// Post processing passes
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-import tvTexture from '../../../assets/textures/tv.jpg';
-import { ASSETHANDLER } from '../../systems/assets/AssetHandler';
-
+// Custom shader passes
 import { BadTVShader } from '../../../external/three/shaders/BadTVShader.js'
 import { TVShader } from '../../shaders/TV/TVShader.js';
 import { CopyShader } from '../../../external/three/shaders/CopyShader.js'
+
+// Global variables
 import { GLOBALS } from '../../world/World';
 
-const createOverlay = (width, height, time, fps) => {
+// Assets
+import { ASSETHANDLER } from '../../systems/assets/AssetHandler';
+import tvTexture from '../../../assets/textures/tv.jpg';
+
+
+const createOverlay = (width, height, text, fps) => {
     const ctx = document.createElement('canvas').getContext('2d');
 
     const proportions = height / width;
@@ -27,12 +33,11 @@ const createOverlay = (width, height, time, fps) => {
     ctx.canvas.height = height;
     ctx.font = '50px serif';
     ctx.fillStyle = '#fff';
-    ctx.fillText("TWISTING HALLWAY", cornerOffset + 20, cornerOffset + 70);
+    ctx.fillText(text, cornerOffset + 20, cornerOffset + 70);
 
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = lineWidth
 
-    //ctx.beginPath();
     for(var x = 0; x <= 1; x++) for(var y = 0; y <= 1; y++) {
         const cx = cornerOffset + x * (width - 2 * cornerOffset);
         const cy = cornerOffset + y * (height - 2 * cornerOffset);
@@ -65,9 +70,9 @@ const createScreenMesh = (planeWidth, planeHeight, renderTarget, fps) => {
     const geometry = new THREE.PlaneBufferGeometry(planeWidth, planeHeight);
     const material = new THREE.MeshStandardMaterial({
         emissive: new THREE.Color("#ffffff"),
-        emissiveIntensity: 0.70,
+        emissiveIntensity: 0.60,
         metalness: 0.0,
-        roughness: 0.1,
+        roughness: 0.7,
 
         map: renderTarget.texture,
         emissiveMap: renderTarget.texture,
@@ -99,21 +104,22 @@ const createScreenMesh = (planeWidth, planeHeight, renderTarget, fps) => {
     return screen;
 };
 
-const createScreen = (renderer, scene, camera, passUniforms) => {
+const createScreen = (renderer, scene, camera, 
+    planeWidth, planeHeight, text, passUniforms) => {
     // Plane dimensions
-    const planeWidth = GLOBALS.roomDimensions.width / 1.2;
-    const planeHeight = planeWidth / 1.3;
+    //const planeWidth = GLOBALS.roomDimensions.width / 1.2;
+    //const planeHeight = planeWidth / 1.3;
 
     // Setup render 
-    const resolution = 200;
+    const resolution = 300;
     const rtWidth = planeWidth * resolution;
     const rtHeight = planeHeight * resolution;
 
     // Screen update frequency
-    const fps = 30;
+    const fps = 10;
 
     // Setup overlay texture
-    const [ctx, overlayTexture] = createOverlay(rtWidth, rtHeight, 0.0, fps);
+    const [ctx, overlayTexture] = createOverlay(rtWidth, rtHeight, text, fps);
 
     // TODO use normal render targets if webgl2 is not supported
     var renderTarget = new THREE.WebGLMultisampleRenderTarget(rtWidth, rtHeight);
@@ -150,8 +156,11 @@ const createScreen = (renderer, scene, camera, passUniforms) => {
     tvShaderPass.uniforms["warpOffset"].value = [0.8, 0.8];
     tvShaderPass.uniforms["overlayTexture"].value = overlayTexture;
 
-    tvShaderPass.uniforms["contrast"].value = 1.1;
-    tvShaderPass.uniforms["brightness"].value = 0.8;
+    tvShaderPass.uniforms["noiseFrequency"].value = 5.2;
+    tvShaderPass.uniforms["noiseAmount"].value = 0.03;
+
+    tvShaderPass.uniforms["contrast"].value = 1.2;
+    tvShaderPass.uniforms["brightness"].value = 0.75;
 
     // Add passes
     composer.addPass(renderPass);
@@ -164,14 +173,27 @@ const createScreen = (renderer, scene, camera, passUniforms) => {
 
     // Set uniforms (if passed)
     if(passUniforms) {
+        // Iterate over available post processing passes
         const passes = { renderPass, filmPass, tvShaderPass };
         for ( const passName in passes ) {
+            // Fetch possible uniform values for the current pass
             const uniforms = passUniforms[passName];
+
+            // If no uniforms, do nothing
             if(!uniforms) continue;
+
+            // Otherwise, get the current pass 
             const pass = passes[passName];
+
+            // Iterate over all the uniforms that needs to be set
             for ( const uniformName in uniforms ) {
+                // Get the corresponding uniform object 
                 const uniformObject = pass.uniforms[uniformName];
+
+                // If there is no corresponding uniform object, do nothing
                 if(!uniformObject) continue;
+
+                // Otherwise, set the uniform value
                 const uniformValue = uniforms[uniformName];
                 uniformObject.value = uniformValue;
             }
@@ -217,9 +239,7 @@ const createScreen = (renderer, scene, camera, passUniforms) => {
 
 
 
-    return { renderToScreen, screen, passes: {
-
-    } };
+    return [ renderToScreen, screen ];
 };
 
 export { createScreen };

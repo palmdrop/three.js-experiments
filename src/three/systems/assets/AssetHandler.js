@@ -67,7 +67,25 @@ class AssetHandler {
     async loadGLTF(path) {
         return this._load(path, async (p) => {
             const model = await this.gltfLoader.loadAsync(p);
+
+            this._loaded(path);
+
             return model;
+        });
+    }
+
+    loadImageHDRI(renderer, path, onLoad) {
+        return this._load(path, (p) => {
+            const texture = this.textureLoader.load(p, () => {
+                const rt = new THREE.WebGLCubeRenderTarget(texture.image.height);
+                rt.fromEquirectangularTexture(renderer, texture);
+
+                onLoad && onLoad(rt.texture);
+
+                return rt.texture;
+            });
+            this._loaded(path);
+            return texture;
         });
     }
 };

@@ -1,19 +1,23 @@
 import * as THREE from 'three'
 import { GLOBALS } from '../../world/World';
 
-const createLights = () => {
-    // Ceiling light
-    const ceilingLight = new THREE.PointLight(
-        //0xFFD98F, // Color
-        0xFFFFFF,
-        25,        // Intensity
-        30,       // Distance
-        1.5         // Decay
-    );
-    ceilingLight.position.set(0, GLOBALS.roomDimensions.height / 2 - 0.1, 0);
+const createLights = (skylightPositions) => {
+    const skylights = [];
 
-    ceilingLight.castShadow = true;
-    ceilingLight.shadow.radius = 7;
+    skylightPositions.forEach(position => {
+        const skylight = new THREE.PointLight(
+            //0xFFD98F, // Color
+            0xFFFFFF,
+            30,        // Intensity
+            30,       // Distance
+            1.5         // Decay
+        );
+        skylight.position.set(position.x, position.y, position.z);
+        skylight.castShadow = true;
+        skylight.shadow.radius = 7;
+
+        skylights.push(skylight);
+    });
 
     // Corner lights
     const cornerOffset = 0.5;
@@ -44,69 +48,22 @@ const createLights = () => {
     // Ambient/hemisphere
     const ambientLight = new THREE.AmbientLight( 0x202020 );
 
-    //const hemisphereLight = new THREE.HemisphereLight(0x665533, 0x334455, 1);
-    //const directionalLight = new THREE.DirectionalLight(0xffffff, 1 );
-    //directionalLight.position.set(5, 10, 20);
+    // Update function for lights
+    // Used to create more dynamic lighting
 
-    // Moving light
+    const updateLights = (delta, time) => {
+        console.log(time);
+    };
 
-    const movingLight = new (class extends THREE.Group {
-        constructor() {
-            super();
-
-            const numberOfLights = 3;
-            const orbit = 2.5;
-
-            for(var i = 0; i < numberOfLights; i++) {
-                var color;
-
-                switch(i) {
-                    case 0: color = 0xFF0000; break;
-                    case 1: color = 0x00FF00; break;
-                    case 2: color = 0x0000FF; break;
-                }
-
-
-                const light = new THREE.PointLight(
-                    color, // Color
-                    100,      // Intensity
-                    17,       // Distance
-                    4         // Decay
-                );
-
-                light.position.set(
-                    orbit * Math.cos(2 * Math.PI * i / numberOfLights),
-                    0,
-                    orbit * Math.sin(2 * Math.PI * i / numberOfLights),
-                );
-
-                //light.castShadow = true;
-
-                this.add(light);
-            }
-        }
-
-        update(delta = 0, time = 0) {
-            this.rotation.y += delta * 1;
-
-            this.scale.set(
-                Math.cos(time),
-                Math.cos(time),
-                Math.cos(time)
-            );
-        }
-    })();
-
-    movingLight.position.set(0.000, 0, 0);
-
-    return [
-        ceilingLight, 
-        cornerLight1,
-        cornerLight2,
-        //hemisphereLight,
-        //directionalLight,
-        //movingLight,
-        ambientLight];
+    return {
+        updateLights,
+        lights: [
+            ...skylights, 
+            cornerLight1,
+            cornerLight2,
+            ambientLight
+        ]
+    };
 };
 
 export { createLights }
