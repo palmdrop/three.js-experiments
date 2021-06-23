@@ -10,7 +10,7 @@ const createCamera = (width, height) => {
         GLOBALS.near, // near
         GLOBALS.far   // far
     );
-    camera.position.z = 10; // Move camera away from scene
+    camera.position.z = 3; // Move camera away from scene
 
     // Create rig (for smooth camera controls)
     const rig = new CameraRig(camera);

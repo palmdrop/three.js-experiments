@@ -7,14 +7,17 @@ var TVShader = {
         'tDiffuse': { value: null },
         'opacity': { value: 1.0 },
 
-        // Overlay
-        'overlayTexture': { type: 't', value: null },
-
         // RGB Shift
         'redOffset': { value: [0.01, -0.01]},
         'greenOffset': { value: [-0.01, 0.003]},
         'blueOffset': { value: [0.004, -0.002]},
         'warpOffset': { value: [0.04, 0.04]},
+
+        // Overlay
+        'overlayTexture': { type: 't', value: null },
+        
+        // Mirror
+        'mirror': { value: 0 },
 
         // Noise distortions
         'noiseAmount': { value: 0.08 },
@@ -27,6 +30,11 @@ var TVShader = {
         // Color control
         'contrast': { value: 1.1 },
         'brightness': { value: 1.0 },
+
+        'dampenThreshold': { value: 0.8 },
+        'dampenAmount': { value: 1.2 },
+
+        'colorCorrection': { value: [0.0, 0.0, 0.0] }
     },
 
     vertexShader: /* glsl */`
@@ -51,6 +59,8 @@ var TVShader = {
 
       uniform vec2 warpOffset;
 
+      uniform int mirror;
+
       uniform float noiseAmount;
       uniform float noiseFrequency;
       uniform float time;
@@ -59,6 +69,11 @@ var TVShader = {
 
       uniform float contrast;
       uniform float brightness;
+
+      uniform float dampenThreshold;
+      uniform float dampenAmount;
+
+      uniform vec3 colorCorrection;
 
       // Start Ashima 2D Simplex Noise
 
@@ -125,7 +140,11 @@ var TVShader = {
 
         uv.x += aX * offset.x;
         uv.y += aY * offset.y;
-        //return vec2(1.0 - uv.x, uv.y);
+
+        if(mirror == 1) {
+          return vec2(1.0 - uv.x, uv.y);
+        }
+
         return uv;
     }
 
@@ -133,6 +152,17 @@ var TVShader = {
         float x = cos(angle) * (p.x - center.x) - sin(angle) * (p.y - center.y) + center.x;
         float y = sin(angle) * (p.x - center.x) + cos(angle) * (p.y - center.y) + center.y;
         return vec2(x, y);
+    }
+
+    float dampen(float value, float threshold, float compression) {
+        if(value < threshold) return value;
+
+        float extra = value - threshold;
+        float reduction = pow(extra, 1.0 / compression);
+
+        float newValue = value - reduction;
+
+        return newValue < threshold ? threshold : newValue;
     }
 
 		void main() {
@@ -148,14 +178,23 @@ var TVShader = {
             blueOffset
         );
 
-        vec4 overlay = texture2D(overlayTexture, vUv);
-
         float ns = noiseAmount;
         float f = noiseFrequency;
         float r = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(5, 20) + vec2(time * 2.8, 0.0));
         float g = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(10, 30) + vec2(0, -time * 2.6));
         float b = 1.0 + ns / 2.0 - ns * snoise( f * uv * vec2(20, 5) + vec2(0, time * 3.5));
-			  gl_FragColor = pow(brightness * opacity * (texel + overlay) * vec4(r, g, b, 1.0), vec4(contrast));
+        texel *= vec4(r, g, b, 1.0);
+
+        texel.r = dampen(texel.r, dampenThreshold, dampenAmount);
+        texel.g = dampen(texel.g, dampenThreshold, dampenAmount);
+        texel.b = dampen(texel.b, dampenThreshold, dampenAmount);
+
+        //texel += vec4(colorCorrection[0], colorCorrection[1], colorCorrection[2], 0.0);
+        texel += vec4(colorCorrection.rgb, 0.0);
+
+        vec4 overlay = texture2D(overlayTexture, vUv);
+			  gl_FragColor = pow(brightness * opacity * (texel + overlay), vec4(contrast));
+        
 		}`
 
 };

@@ -2,17 +2,8 @@ import * as THREE from 'three'
 import { ASSETHANDLER } from '../../systems/assets/AssetHandler';
 import { GLOBALS } from '../../world/World'
 
-import c1 from '../../../assets/textures/concrete1.png'
-import c2 from '../../../assets/textures/concrete2.png'
-import c3 from '../../../assets/textures/concrete3.png'
-import c4 from '../../../assets/textures/concrete4.png'
-import c5 from '../../../assets/textures/concrete5.png'
-
-import brickWall1 from '../../../assets/textures/brick-wall1.jpg'
-import brickWall2 from '../../../assets/textures/brick-wall2.jpg'
 import darkWall from '../../../assets/textures/dark-wall.jpg'
 import wall1 from '../../../assets/textures/wall1.jpg'
-import wall2 from '../../../assets/textures/wall2.jpg'
 
 const createRoof = () => {
     const thickness = 2;

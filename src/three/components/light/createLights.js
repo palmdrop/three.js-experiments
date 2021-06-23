@@ -1,16 +1,22 @@
 import * as THREE from 'three'
 import { GLOBALS } from '../../world/World';
 
+import SimplexNoise from 'simplex-noise';
+
+const simplex = new SimplexNoise();
+
 const createLights = (skylightPositions) => {
     const skylights = [];
 
+    const skylightIntensity = 40;
+    const skylightDistance = 40;
     skylightPositions.forEach(position => {
         const skylight = new THREE.PointLight(
             //0xFFD98F, // Color
-            0xFFFFFF,
-            30,        // Intensity
-            30,       // Distance
-            1.5         // Decay
+            0xD0D0FF,
+            skylightIntensity, // Intensity
+            skylightDistance,  // Distance
+            1.5                // Decay
         );
         skylight.position.set(position.x, position.y, position.z);
         skylight.castShadow = true;
@@ -20,7 +26,7 @@ const createLights = (skylightPositions) => {
     });
 
     // Corner lights
-    const cornerOffset = 0.5;
+    const cornerOffset = 1.5;
     const cornerLight1 = new THREE.PointLight(
         0x7FFF88,
         30,
@@ -50,20 +56,35 @@ const createLights = (skylightPositions) => {
 
     // Update function for lights
     // Used to create more dynamic lighting
-
+    const skylightFlickerAmount = 0.5;
     const updateLights = (delta, time) => {
-        console.log(time);
+        const offsetX = time / 7.0;
+        const offsetZ = -time / 12.0;
+
+        for(var i = 0; i < skylights.length; i++) {
+            const light = skylights[i];
+            let n = simplex.noise3D(
+                light.position.x + offsetX, 
+                light.position.y, 
+                light.position.z + offsetZ
+            );
+
+            n = skylightFlickerAmount * ((n + 1.0) / 2.0);
+            light.intensity = skylightIntensity * (1.0 - n);
+        }
     };
 
-    return {
-        updateLights,
-        lights: [
-            ...skylights, 
-            cornerLight1,
-            cornerLight2,
-            ambientLight
-        ]
-    };
+    // Light holder
+    const lightHolder = new THREE.Object3D();
+    lightHolder.add(
+        ...skylights,
+        cornerLight1,
+        cornerLight2,
+        ambientLight
+    );
+    lightHolder.update = updateLights;
+
+    return lightHolder;
 };
 
 export { createLights }

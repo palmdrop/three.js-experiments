@@ -16,7 +16,6 @@ export class RotationModule {
         this.speed = speed;
 
         // Friction of rotation
-        // friction = 0.5 will halv velocity each second
         this.friction = friction;
 
         // Current rotation

@@ -8,12 +8,8 @@ import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 // Custom shader passes
-import { BadTVShader } from '../../../external/three/shaders/BadTVShader.js'
 import { TVShader } from '../../shaders/TV/TVShader.js';
 import { CopyShader } from '../../../external/three/shaders/CopyShader.js'
-
-// Global variables
-import { GLOBALS } from '../../world/World';
 
 // Assets
 import { ASSETHANDLER } from '../../systems/assets/AssetHandler';
@@ -70,9 +66,9 @@ const createScreenMesh = (planeWidth, planeHeight, renderTarget, fps) => {
     const geometry = new THREE.PlaneBufferGeometry(planeWidth, planeHeight);
     const material = new THREE.MeshStandardMaterial({
         emissive: new THREE.Color("#ffffff"),
-        emissiveIntensity: 0.60,
+        emissiveIntensity: 0.70,
         metalness: 0.0,
-        roughness: 0.7,
+        roughness: 0.5,
 
         map: renderTarget.texture,
         emissiveMap: renderTarget.texture,
@@ -106,9 +102,6 @@ const createScreenMesh = (planeWidth, planeHeight, renderTarget, fps) => {
 
 const createScreen = (renderer, scene, camera, 
     planeWidth, planeHeight, text, passUniforms) => {
-    // Plane dimensions
-    //const planeWidth = GLOBALS.roomDimensions.width / 1.2;
-    //const planeHeight = planeWidth / 1.3;
 
     // Setup render 
     const resolution = 300;
@@ -142,25 +135,26 @@ const createScreen = (renderer, scene, camera,
         0     // Grayscale
     );
 
-    /*const badTVShaderPass = new ShaderPass( BadTVShader );
-    badTVShaderPass.uniforms["distortion"].value = 1.1;
-    badTVShaderPass.uniforms["distortion2"].value = 1.1;
-    badTVShaderPass.uniforms["speed"].value = 0.1;
-    badTVShaderPass.uniforms["rollSpeed"].value = 0.0;
-    */
-
     const tvShaderPass = new ShaderPass(TVShader);
     tvShaderPass.uniforms["redOffset"].value = [0.0004, -0.001];
     tvShaderPass.uniforms["greenOffset"].value = [-0.001, 0];
     tvShaderPass.uniforms["blueOffset"].value = [0.001, 0.001];
-    tvShaderPass.uniforms["warpOffset"].value = [0.8, 0.8];
+    tvShaderPass.uniforms["warpOffset"].value = [0.2, 0.2];
+
     tvShaderPass.uniforms["overlayTexture"].value = overlayTexture;
 
-    tvShaderPass.uniforms["noiseFrequency"].value = 5.2;
-    tvShaderPass.uniforms["noiseAmount"].value = 0.03;
+    tvShaderPass.uniforms["mirror"].value = false;
 
-    tvShaderPass.uniforms["contrast"].value = 1.2;
-    tvShaderPass.uniforms["brightness"].value = 0.75;
+    tvShaderPass.uniforms["noiseFrequency"].value = 5.2;
+    tvShaderPass.uniforms["noiseAmount"].value = 0.01;
+
+    tvShaderPass.uniforms["contrast"].value = 1.3;
+    tvShaderPass.uniforms["brightness"].value = 0.85;
+
+    tvShaderPass.uniforms["dampenThreshold"].value = 0.8;
+    tvShaderPass.uniforms["dampenAmount"].value = 1.2;
+
+    tvShaderPass.uniforms["colorCorrection"].value = [0.01, 0.0, -0.01];
 
     // Add passes
     composer.addPass(renderPass);

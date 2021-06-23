@@ -4,7 +4,6 @@ import { World } from './world/World'
 import { AnimationLoop } from './systems/loop/AnimationLoop'
 import { KeyInputHandler } from './systems/input/KeyInputHandler'
 import { ASSETHANDLER } from './systems/assets/AssetHandler';
-//import { AssetHandler } from './systems/assets/AssetHandler'
 
 let world;
 

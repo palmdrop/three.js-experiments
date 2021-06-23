@@ -12,6 +12,8 @@ export class CameraRig {
             current: null,
             sensitivity: 0.05
         };
+
+        this.restriction = null;
     }
 
     zoom(direction) {
@@ -38,6 +40,8 @@ export class CameraRig {
                 this.camera.addForce(right.multiplyScalar(1));
             break;
         }
+
+        if(this.restriction) this.restriction();
     }
 
     look(direction) {

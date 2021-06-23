@@ -27,7 +27,7 @@ const LoadingPage = ({ loaded }) => {
     const getBackground = () => {
         if(backgroundURL.current) return backgroundURL.current;
 
-        const text = "THREE";
+        const text = "feed";
         const canvas = document.createElement("canvas");
         const fontSize = 100;
         canvas.setAttribute("height", fontSize);
@@ -35,10 +35,10 @@ const LoadingPage = ({ loaded }) => {
         context.font = fontSize + 'px sans-serif';
         const textMetrics = context.measureText(text);
 
-        canvas.setAttribute("width", textMetrics.width);
+        canvas.setAttribute("width", textMetrics.width * 1.05);
 
         context.font = fontSize + 'px cursive';
-        context.fillStyle = "white";
+        context.fillStyle = "#332255";
         context.fillText(text, 0, fontSize);
 
         backgroundURL.current = canvas.toDataURL("image/png");

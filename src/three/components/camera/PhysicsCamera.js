@@ -28,8 +28,8 @@ export class PhysicsCamera extends THREE.PerspectiveCamera {
         // Module for handling zoom (fov change)
         this._zoomModule = {
             amount: 1.0,
-            min: 0.05,
-            max: 10,
+            min: 0.2,
+            max: 3,
             velocity: 0.0,  
             speed: 0.02,     
             friction: 0.1,
