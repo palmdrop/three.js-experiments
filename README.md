@@ -1,77 +1,16 @@
-# THREE.JS EXPERIMENTS
-An exploratory repository for learning React and Three.js. At this point, the project lacks clear direction -- it's simply a general Three.js + React setup with a modular structure. I have some ideas for 3D projects. When these take shape, this repository might change name and/or another repository might pop up.
+# VIDEO FEEDBACK LOOP IN THREE.JS
+A small, exploratory three.js project for experimenting with virtual video feedback loops and post-processing. At the moment, there's no live web version. Run the project by cloning the repository and running `npm start` in the root directory. Then open `localhost:3000` in your browser.
 
-This repository is made public to more easily share my code.
+The project was created using [create-react-app](https://github.com/facebook/create-react-app). 
 
----
+![Example 1](/img/example/feedback1.png)
+![Example 2](/img/example/feedback2.png)
+![Example 3](/img/example/feedback3.png)
+![Example 4](/img/example/feedback4.png)
 
-# Getting Started with Create React App
+## Contact and social media
+:mailbox_with_mail: [Email](mailto:anton@exlex.se) (the most reliable way of reaching me)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+:camera: [Instagram](https://www.instagram.com/palmdrop/) (where I showcase a lot of my work)
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+:computer: [Blog](https://palmdrop.github.io/) (where I occasionally write posts about my process)
